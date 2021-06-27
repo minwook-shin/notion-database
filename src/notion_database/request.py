@@ -1,9 +1,7 @@
 import json
-import os
 
 import requests
-
-from src.notion_database import NOTION_VERSION
+from notion_database import NOTION_VERSION
 
 
 class Request:

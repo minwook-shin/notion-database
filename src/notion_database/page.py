@@ -1,4 +1,4 @@
-from src.notion_database.request import Request
+from notion_database.request import Request
 
 
 class Page:
