@@ -2,58 +2,46 @@
 
 class Properties:
     def __init__(self):
-        self.title = {"title": [{"text": {"content": ""}}]}
-        self.rich_text = {"rich_text": [{"text": {"content": ""}}]}
-        self.number = {"number": 0}
-        self.select = {"select": {"name": ""}}
-        self.multi_select = {"multi_select": [{"name": ""}]}
-        self.checkbox = {"checkbox": False}
-        self.url = {"url": ""}
-        self.email = {"email": ""}
-        self.phone_number = {"phone_number": ""}
+        self.result = {}
 
-    def set_title(self, text):
-        self.title["title"][0]["text"]["content"] = text
-        return self.title
+    def set_title(self, col, text):
+        self.result.update({col: {"title": [{"text": {"content": text}}]}})
 
-    def set_rich_text(self, text):
-        self.rich_text["rich_text"][0]["text"]["content"] = text
-        return self.rich_text
+    def set_rich_text(self, col, text):
+        self.result.update({col: {"rich_text": [{"text": {"content": text}}]}})
 
-    def set_number(self, text):
-        self.number["number"] = text
-        return self.number
+    def set_number(self, col, text):
+        self.result.update({col: {"number": text}})
 
-    def set_select(self, text):
-        self.select["select"]["name"] = text
-        return self.select
+    def set_select(self, col, text):
+        self.result.update({col: {"select": {"name": text}}})
 
-    def set_multi_select(self, text_list):
+    def set_multi_select(self, col, text_list):
         data = [{"name": i} for i in text_list]
-        self.multi_select["multi_select"] = data
-        return self.multi_select
+        self.result.update({col: {"multi_select": data}})
 
-    def set_checkbox(self, text=False):
-        self.checkbox["checkbox"] = text
-        return self.checkbox
+    def set_checkbox(self, col, text=False):
+        self.result.update({col: {"checkbox": text}})
 
-    def set_url(self, text):
-        self.url["url"] = text
-        return self.url
+    def set_url(self, col, text):
+        self.result.update({col: {"url": text}})
 
-    def set_email(self, text):
-        self.email["email"] = text
-        return self.email
+    def set_email(self, col, text):
+        self.result.update({col: {"email": text}})
 
-    def set_phone_number(self, text):
-        self.phone_number["phone_number"] = text
-        return self.phone_number
+    def set_phone_number(self, col, text):
+        self.result.update({col: {"phone_number": text}})
+
+    def clear(self):
+        self.result.clear()
 
 
 class Children:
     def __init__(self):
-        self.text = ""
-        self.body = {
+        self.result = []
+
+    def set_body(self, text):
+        self.result = [{
             "object": "block",
             "type": "paragraph",
             "paragraph": {
@@ -61,13 +49,9 @@ class Children:
                     {
                         "type": "text",
                         "text": {
-                            "content": self.text,
+                            "content": text,
                         }
                     }
                 ]
             }
-        }
-
-    def set_body(self, text):
-        self.body["paragraph"]["text"][0]["text"]["content"] = text
-        return self.body
+        }]
