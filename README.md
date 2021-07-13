@@ -3,6 +3,13 @@
 
 created only by database from the official Notion API.
 
+
+## What's new
+
+* 2021.07.13
+    * Archive Page
+        * https://developers.notion.com/reference/patch-page#archive-delete-a-page
+
 ## Installing / Getting started
 
 ```shell
@@ -90,6 +97,15 @@ PROPERTY = Properties()
 PROPERTY.clear()
 ```
 
+### Archive Page
+
+```python
+from notion_database.page import Page
+
+P = Page(integrations_token=NOTION_KEY)
+P.archive_page(page_id=page_id, archived=True)
+```
+
 ## Building / Developing
 
 ```shell
@@ -104,6 +120,8 @@ python setup.py install
 * Create Page object (the database item)
 * update Page object 
 * Retrieve Page object
+
+* Archive Page
 
 ## Todo
 

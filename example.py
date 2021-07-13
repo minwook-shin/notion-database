@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 
 from notion_database.database import Database
 from notion_database.page import Page
@@ -65,3 +66,13 @@ for i in D.result["results"]:
     # Update Page
     logger.debug("Update Page")
     P.update_page(page_id=page_id, properties=PROPERTY)
+
+    time.sleep(1)
+    # Archive Page
+
+    P.archive_page(page_id=page_id, archived=True)
+
+    time.sleep(1)
+    # Un-Archive Page
+
+    P.archive_page(page_id=page_id, archived=False)

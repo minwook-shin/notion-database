@@ -43,6 +43,14 @@ class Page:
 
         self.check_field()
 
+    def archive_page(self, page_id, archived):
+        body = {
+            "archived": archived,
+        }
+        self.result = self.request.call_api_patch(self.url + "/" + page_id, body)
+
+        self.check_field()
+
     def check_field(self):
         if self.result["object"] == "error":
             LOGGER.error(self.result["message"])
