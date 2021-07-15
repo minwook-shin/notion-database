@@ -1,3 +1,4 @@
+from notion_database.properties import Properties
 from notion_database.request import Request
 
 
@@ -17,3 +18,25 @@ class Database:
     def list_databases(self, page_size=100):
         url = self.url + f"?page_size={str(page_size)}"
         self.result = self.request.call_api_get(url)
+
+    def create_database(self, page_id, title, properties=None):
+        if properties is None:
+            properties = Properties()
+        properties = properties
+        body = {
+            "parent": {
+                "type": "page_id",
+                "page_id": page_id
+            },
+            "title": [
+                {
+                    "type": "text",
+                    "text": {
+                        "content": title,
+                        "link": None
+                    }
+                }
+            ],
+            "properties": properties.result
+        }
+        self.result = self.request.call_api_post(self.url, body)

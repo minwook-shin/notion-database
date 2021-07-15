@@ -9,6 +9,10 @@ created only by database from the official Notion API.
 * 2021.07.13
     * Archive Page
         * https://developers.notion.com/reference/patch-page#archive-delete-a-page
+    
+* 2021.07.15
+    * Create new databases
+        * https://developers.notion.com/changelog/create-new-databases-with-post-databases
 
 ## Installing / Getting started
 
@@ -106,6 +110,15 @@ P = Page(integrations_token=NOTION_KEY)
 P.archive_page(page_id=page_id, archived=True)
 ```
 
+### Create database
+
+```python
+from notion_database.database import Database
+
+D = Database(integrations_token=NOTION_KEY)
+D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY)
+```
+
 ## Building / Developing
 
 ```shell
@@ -116,6 +129,7 @@ python setup.py install
 
 * list database
 * Retrieve database
+* Create database
 
 * Create Page object (the database item)
 * update Page object 

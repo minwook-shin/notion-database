@@ -69,10 +69,26 @@ for i in D.result["results"]:
 
     time.sleep(1)
     # Archive Page
-
+    logger.debug("Archive Database")
     P.archive_page(page_id=page_id, archived=True)
 
     time.sleep(1)
     # Un-Archive Page
-
+    logger.debug("Un-Archive Database")
     P.archive_page(page_id=page_id, archived=False)
+
+    # Create Database
+    logger.debug("Create Database")
+
+    PROPERTY = Properties()
+    PROPERTY.set_title("child_name")
+    PROPERTY.set_rich_text("child_description")
+    PROPERTY.set_number("child_number")
+    PROPERTY.set_select("child_select")
+    PROPERTY.set_multi_select("child_multi_select")
+    PROPERTY.set_multi_select("child_multi_select2")
+    PROPERTY.set_checkbox("child_checkbox")
+    PROPERTY.set_url("child_url")
+    PROPERTY.set_email("child_email")
+    PROPERTY.set_phone_number("child_phone")
+    D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY)

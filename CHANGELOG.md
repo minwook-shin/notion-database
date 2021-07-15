@@ -1,5 +1,14 @@
 # Changelog
 
+## 2021-05-13.6 (2021-07-15)
+
+### Features
+
+* Add Create database
+    * https://developers.notion.com/reference/create-a-database
+    
+### Bug Fixes
+
 ## 2021-05-13.5 (2021-07-13)
 
 ### Features
