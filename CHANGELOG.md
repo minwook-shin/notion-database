@@ -1,12 +1,21 @@
 # Changelog
 
+## 2021-05-13.7 (2021-07-15)
+
+### Features
+
+* Finding all pages in a database
+  * https://github.com/minwook-shin/notion-database/issues/2
+
+### Bug Fixes
+
 ## 2021-05-13.6 (2021-07-15)
 
 ### Features
 
 * Add Create database
     * https://developers.notion.com/reference/create-a-database
-    
+
 ### Bug Fixes
 
 ## 2021-05-13.5 (2021-07-13)
@@ -15,9 +24,8 @@
 
 * Add Archive Page
     * https://developers.notion.com/reference/patch-page#archive-delete-a-page
-    
-### Bug Fixes
 
+### Bug Fixes
 
 ## 2021-05-13.4 (2021-07-11)
 
@@ -30,14 +38,13 @@
 * Database duplicate issue
     * https://github.com/minwook-shin/notion-database/issues/1
 
-
 ## 2021-05-13.3 (2021-07-03)
 
 ### Features
 
 * Add list database
 * Add Retrieve database
-* Add update Page object 
+* Add update Page object
 * Add Retrieve Page object
 
 ### Bug Fixes

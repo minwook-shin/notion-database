@@ -119,6 +119,17 @@ D = Database(integrations_token=NOTION_KEY)
 D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY)
 ```
 
+### Finding all pages in a database
+
+```python
+from notion_database.database import Database
+import pprint
+
+D = Database(integrations_token=NOTION_KEY)
+D.find_all_page(database_id=database_id)
+pprint.pprint(D.result)
+```
+
 ## Building / Developing
 
 ```shell
@@ -137,9 +148,11 @@ python setup.py install
 
 * Archive Page
 
+* Finding all pages in a database
+
 ## Todo
 
-* query database
+* query database (wip) 
 
 ## Contributing
 

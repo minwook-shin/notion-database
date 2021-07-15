@@ -1,5 +1,6 @@
 import logging
 import os
+import pprint
 import time
 
 from notion_database.database import Database
@@ -92,3 +93,9 @@ for i in D.result["results"]:
     PROPERTY.set_email("child_email")
     PROPERTY.set_phone_number("child_phone")
     D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY)
+
+    # Finding all pages in a database
+    D.find_all_page(database_id=database_id)
+    pprint.pprint(D.result)
+
+    # D.run_query_database(database_id=database_id, body={})

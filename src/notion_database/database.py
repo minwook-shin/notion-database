@@ -15,6 +15,23 @@ class Database:
         # Not Implemented
         pass
 
+    def run_query_database(self, database_id, body=None):
+        """
+        for developer
+        :param database_id:
+        :param body:
+        :return:
+        """
+        if body is None:
+            body = {}
+        self.result = self.request.call_api_post(self.url + "/" + database_id + "/query", body)
+
+    def find_all_page(self, database_id):
+        body = {
+            "sorts": []
+        }
+        self.result = self.request.call_api_post(self.url + "/" + database_id + "/query", body)
+
     def list_databases(self, page_size=100):
         url = self.url + f"?page_size={str(page_size)}"
         self.result = self.request.call_api_get(url)
