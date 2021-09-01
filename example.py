@@ -28,14 +28,33 @@ for i in D.result["results"]:
     database_id = i["id"]
     logger.debug(database_id)
 
+    PROPERTY = Properties()
+    PROPERTY.set_title("name")
+    PROPERTY.set_rich_text("description")
+    PROPERTY.set_number("number")
+    PROPERTY.set_select("select")
+    PROPERTY.set_multi_select("multi_select")
+    PROPERTY.set_multi_select("multi_select2")
+    PROPERTY.set_checkbox("checkbox")
+    PROPERTY.set_url("url")
+    PROPERTY.set_email("email")
+    PROPERTY.set_phone_number("phone")
+
+    # Get Properties and Remove/Update Database
+    logger.debug("Get properties")
+    D.retrieve_database(database_id, get_properties=True)
+    logger.debug("Remove/Update Database")
+    D.update_database(database_id=database_id, title="DB", remove_properties=D.properties_list, add_properties=PROPERTY)
+
     # Retrieve Database
     logger.debug("Retrieve Database")
     D = Database(integrations_token=NOTION_KEY)
     D.retrieve_database(database_id=database_id)
 
     PROPERTY = Properties()
-    PROPERTY.set_title("name", "title")
-    PROPERTY.set_rich_text("description", "notion-datebase")
+    PROPERTY.set_title("title", "title")
+    PROPERTY.set_title("name", "notion-api")
+    PROPERTY.set_rich_text("description", "notion-database")
     PROPERTY.set_number("number", 1)
     PROPERTY.set_select("select", "test1")
     PROPERTY.set_multi_select("multi_select", ["test1", "test2"])
@@ -60,7 +79,7 @@ for i in D.result["results"]:
     P.retrieve_page(page_id=page_id)
 
     PROPERTY.clear()
-    PROPERTY.set_title("name", "Custom_title")
+    PROPERTY.set_title("name", "Custom_name")
     PROPERTY.set_rich_text("description", "Custom_description")
     PROPERTY.set_number("number", 2)
 

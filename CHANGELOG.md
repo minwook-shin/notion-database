@@ -1,5 +1,17 @@
 # Changelog
 
+## 2021-08-16.1 (2021-09-01)
+
+### Features
+
+* Update notion-version 2021-08-16
+  * https://developers.notion.com/changelog/notion-version-2021-08-16
+  
+* Get/Remove Properties and Update Database
+
+
+### Bug Fixes
+
 ## 2021-05-13.7 (2021-07-15)
 
 ### Features
