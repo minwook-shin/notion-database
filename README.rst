@@ -1,6 +1,8 @@
 Python Notion Database
 ======================
 
+https://github.com/minwook-shin/notion-database
+
    Notion API Database Python Implementation
 
 created only by database from the official Notion API.
