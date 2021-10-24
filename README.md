@@ -6,7 +6,7 @@ created only by database from the official Notion API.
 
 ## What's new
 
-* 2021.10.23
+* 2021.10.24
   * Children Blocks are now supported!
 
 * 2021.07.13

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2021-08-16.3 (2021-10-24)
+
+### Bug Fixes
+
+* hotfix : fix ModuleNotFoundError
+
 ## 2021-08-16.2 (2021-10-24)
 
 ### Features
