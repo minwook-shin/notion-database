@@ -1,4 +1,6 @@
 # support : "title", "rich_text", "number", "select", "multi_select", "checkbox", "url", "email", "phone_number"
+from utils import deprecate
+
 
 class Properties:
     def __init__(self):
@@ -138,18 +140,22 @@ class Properties:
 
 
 class Children:
+    """
+    deprecated class
+    """
+
     def __init__(self):
         """
         init
         """
         self.result = []
 
+    @deprecate.deprecated_warn
     def set_body(self, text):
         """
-        Children configuration
+        (deprecated) Children configuration
 
-        :param text:
-        :return:
+        move to set_paragraph function
         """
         self.result = [{
             "object": "block",

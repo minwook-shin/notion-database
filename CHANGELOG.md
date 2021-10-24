@@ -1,5 +1,31 @@
 # Changelog
 
+## 2021-08-16.2 (2021-10-24)
+
+### Features
+
+* Add Children Blocks
+  * paragraph
+  * heading 1, heading 2, heading 3
+  * callout
+  * quote
+  * bulleted, numbered list item
+  * to do
+  * toggle
+  * code
+  * embed
+  * external image, video, file, pdf
+  * bookmark
+  * equation
+  * divider, table of contents, breadcrumb
+
+### Bug Fixes
+
+
+### Deprecate
+
+* Children.set_body
+
 ## 2021-08-16.1 (2021-09-01)
 
 ### Features

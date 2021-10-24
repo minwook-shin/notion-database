@@ -1,6 +1,7 @@
 import logging
 
-from notion_database.properties import Properties, Children
+from notion_database.children import Children
+from notion_database.properties import Properties
 from notion_database.request import Request
 
 LOGGER = logging.getLogger("Notion-Database")
