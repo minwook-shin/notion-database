@@ -1,5 +1,12 @@
 # Changelog
 
+## 2021-08-16.4 (2022-01-23)
+
+### Bug Fixes
+
+* PR : Update setup.py
+  * https://github.com/minwook-shin/notion-database/pull/5
+
 ## 2021-08-16.3 (2021-10-24)
 
 ### Bug Fixes
