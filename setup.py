@@ -18,8 +18,8 @@ setuptools.setup(
         "Bug Tracker": "https://github.com/minwook-shin/notion-database/issues",
     },
     install_requires=[
-     "requests==2.25.1"
-    ]
+        "requests==2.25.1"
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
