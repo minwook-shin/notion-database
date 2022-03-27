@@ -20,10 +20,10 @@ List Database
 
 .. code:: python
 
-   from notion_database.database import Database
-
-   D = Database(integrations_token=NOTION_KEY)
-   D.list_databases(page_size=100)
+    S = Search(integrations_token=NOTION_KEY)
+    S.search_database(query="",
+                      sort={"direction": Direction.ascending,
+                            "timestamp": Timestamp.last_edited_time})
 
 Retrieve Database
 ~~~~~~~~~~~~~~~~~

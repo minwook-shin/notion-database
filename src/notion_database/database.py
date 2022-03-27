@@ -1,3 +1,5 @@
+from utils import deprecate
+
 from notion_database.properties import Properties
 from notion_database.request import Request
 
@@ -52,9 +54,10 @@ class Database:
         }
         self.result = self.request.call_api_post(self.url + "/" + database_id + "/query", body)
 
+    @deprecate.deprecated_warn
     def list_databases(self, page_size=100):
         """
-        List databases
+        List databases ('This API is deprecated.')
 
         :param page_size: The number of items from the full list desired in the response.
         :return:

@@ -19,7 +19,7 @@ class Children:
             "object": "block",
             "type": "paragraph",
             "paragraph": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -44,7 +44,7 @@ class Children:
             "object": "block",
             "type": "heading_1",
             "heading_1": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -69,7 +69,7 @@ class Children:
             "object": "block",
             "type": "heading_2",
             "heading_2": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -94,7 +94,7 @@ class Children:
             "object": "block",
             "type": "heading_3",
             "heading_3": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -119,7 +119,7 @@ class Children:
             "object": "block",
             "type": "callout",
             "callout": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -144,7 +144,7 @@ class Children:
             "object": "block",
             "type": "quote",
             "quote": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -169,7 +169,7 @@ class Children:
             "object": "block",
             "type": "bulleted_list_item",
             "bulleted_list_item": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -194,7 +194,7 @@ class Children:
             "object": "block",
             "type": "numbered_list_item",
             "numbered_list_item": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -220,7 +220,7 @@ class Children:
             "object": "block",
             "type": "to_do",
             "to_do": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -247,7 +247,7 @@ class Children:
             "object": "block",
             "type": "toggle",
             "toggle": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {
@@ -259,7 +259,7 @@ class Children:
                     "object": "block",
                     "type": "paragraph",
                     "paragraph": {
-                        "text": [
+                        "rich_text": [
                             {
                                 "type": "text",
                                 "text": {
@@ -287,7 +287,7 @@ class Children:
             "object": "block",
             "type": "code",
             "code": {
-                "text": [
+                "rich_text": [
                     {
                         "type": "text",
                         "text": {

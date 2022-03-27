@@ -1,5 +1,22 @@
 # Changelog
 
+## 2022-02-22.1 (2022-03-27)
+
+### Features
+
+* Update notion-version 2022-02-22
+* Add search_database, search_pages functions
+* Add Direction, Timestamp Enum for search
+
+### Improvements
+
+* Update requests package version (2.27.1)
+
+### Deprecate
+
+* List databases
+  * https://developers.notion.com/reference/get-databases
+
 ## 2021-08-16.4 (2022-01-23)
 
 ### Bug Fixes

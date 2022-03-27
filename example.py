@@ -7,6 +7,8 @@ from notion_database.children import Children
 from notion_database.database import Database
 from notion_database.page import Page
 from notion_database.properties import Properties
+from notion_database.query import Direction, Timestamp
+from notion_database.search import Search
 
 try:
     from dotenv import load_dotenv
@@ -22,10 +24,14 @@ NOTION_KEY = os.getenv('NOTION_KEY')
 
 # List Database
 logger.debug("List Database")
-D = Database(integrations_token=NOTION_KEY)
-D.list_databases(page_size=100)
+S = Search(integrations_token=NOTION_KEY)
+S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
 
-for i in D.result["results"]:
+# List Database API is deprecated.
+# D = Database(integrations_token=NOTION_KEY)
+# D.list_databases(page_size=100)
+
+for i in S.result:
     database_id = i["id"]
     logger.debug(database_id)
 
@@ -43,9 +49,10 @@ for i in D.result["results"]:
 
     # Get Properties and Remove/Update Database
     logger.debug("Get properties")
+    D = Database(integrations_token=NOTION_KEY)
     D.retrieve_database(database_id, get_properties=True)
     logger.debug("Remove/Update Database")
-    D.update_database(database_id=database_id, title="DB", remove_properties=D.properties_list, add_properties=PROPERTY)
+    D.update_database(database_id=database_id, title="DB", add_properties=PROPERTY)
 
     # Retrieve Database
     logger.debug("Retrieve Database")

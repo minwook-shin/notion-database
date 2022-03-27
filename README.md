@@ -6,6 +6,11 @@ created only by database from the official Notion API.
 
 ## What's new
 
+* 2022.03.27
+  * **Update notion-version (2022-02-22)**
+    * Using officially API (out of beta!).
+    * https://developers.notion.com/changelog/releasing-notion-version-2022-02-22
+
 * 2021.10.24
   * Children Blocks are now supported!
 
