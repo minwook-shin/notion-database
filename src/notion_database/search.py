@@ -1,4 +1,9 @@
-from typing import TypedDict
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import TypedDict
 
 from notion_database.query import Direction, Timestamp
 from notion_database.request import Request

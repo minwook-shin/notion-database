@@ -1,5 +1,12 @@
 # Changelog
 
+## 2022-02-22.2 (2022-03-27)
+
+### Bug Fixes
+
+* Add python 3.6, 3.7 compatibility
+  * typing-extensions
+
 ## 2022-02-22.1 (2022-03-27)
 
 ### Features
