@@ -1,3 +1,5 @@
+[![Test Python Package](https://github.com/minwook-shin/notion-database/actions/workflows/python-publish.yml/badge.svg)](https://github.com/minwook-shin/notion-database/actions/workflows/python-publish.yml)
+
 #  Python Notion Database
 > Notion API Database Python Implementation
 
