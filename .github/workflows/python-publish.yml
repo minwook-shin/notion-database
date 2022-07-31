@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Test and Upload Python Package
+name: Test Python Package
 
 on:
   push:
@@ -18,8 +18,7 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
