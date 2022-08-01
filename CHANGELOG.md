@@ -1,5 +1,22 @@
 # Changelog
 
+## 2022-06-28.1 (2022-08-01)
+
+### Features
+
+* Update notion-version 2022-06-28
+* Add Search Pages with Pagination
+* Add Query Databases with Pagination
+
+### Improvements
+
+* Update requests (2.28.1)
+* Update typing-extensions (4.3.0)
+
+### Deprecate
+
+* Drop support for Python 3.6
+
 ## 2022-02-22.2 (2022-03-27)
 
 ### Bug Fixes

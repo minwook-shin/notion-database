@@ -145,6 +145,9 @@ Finding all pages in a database
    D.find_all_page(database_id=database_id)
    pprint.pprint(D.result)
 
+   if D.result["has_more"]:
+      D.find_all_page(database_id=database_id, start_cursor=D.result["next_cursor"])
+
 Get Properties
 ~~~~~~~~~~~~~~
 

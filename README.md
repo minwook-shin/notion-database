@@ -8,6 +8,11 @@ created only by database from the official Notion API.
 
 ## What's new
 
+* 2022.08.01
+  * **Update notion-version (2022-06-28)**
+  * Add Search Pages with Pagination
+  * Add Query Databases with Pagination
+
 * 2022.03.27
   * **Update notion-version (2022-02-22)**
     * Using officially API (out of beta!).
@@ -63,10 +68,6 @@ python setup.py install
 * Update Database
 
 * Add Children Block with page
-
-## Todo
-
-* query database (wip)  # help me!
 
 ## Contributing
 

@@ -162,7 +162,11 @@ for i in S.result:
     D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY)
 
     # Finding all pages in a database
-    D.find_all_page(database_id=database_id)
+    D.find_all_page(database_id=database_id, page_size=1)
     pprint.pprint(D.result)
-
+    # Pagination test
+    logger.debug("Pagination test")
+    if D.result["has_more"]:
+        D.find_all_page(database_id=database_id, start_cursor=D.result["next_cursor"])
+        pprint.pprint(D.result)
     # D.run_query_database(database_id=database_id, body={})

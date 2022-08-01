@@ -48,10 +48,24 @@ class Database:
             body = {}
         self.result = self.request.call_api_post(self.url + "/" + database_id + "/query", body)
 
-    def find_all_page(self, database_id):
-        body = {
-            "sorts": []
-        }
+    def find_all_page(self, database_id, page_size=100, start_cursor: str = None):
+        """
+        find all database page
+        :param database_id: Identifier for a Notion database
+        :param page_size: The number of items from the full list desired in the response.
+        :param start_cursor: returns a page of results starting after the cursor provided.
+        """
+        if start_cursor:
+            body = {
+                "sorts": [],
+                "start_cursor": start_cursor,
+                "page_size": page_size
+            }
+        else:
+            body = {
+                "sorts": [],
+                "page_size": page_size
+            }
         self.result = self.request.call_api_post(self.url + "/" + database_id + "/query", body)
 
     @deprecate.deprecated_warn

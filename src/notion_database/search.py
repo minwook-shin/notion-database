@@ -48,15 +48,22 @@ class Search:
                     root_list.append(db)
             self.result = root_list
 
-    def search_pages(self, query: str, sort: SortType):
+    def search_pages(self, query: str, sort: SortType, page_size=100, start_cursor: str = None):
         """
         Searches all original pages and child pages that are shared with the integration
 
         :param query: matches against the pages titles.
         :param sort: sort query specifically for only pages.
+        :param page_size: The number of items from the full list desired in the response.
+        :param start_cursor: returns a page of results starting after the cursor provided.
         :return:
         """
+        if start_cursor:
+            self.result = self.request.call_api_post(self.url + "/", {
+                "query": query, "sort": {"direction": sort["direction"].value, "timestamp": sort["timestamp"].value},
+                "filter": {"value": "page", "property": "object"}, "page_size": page_size, "start_cursor": start_cursor
+            })
         self.result = self.request.call_api_post(self.url + "/", {
             "query": query, "sort": {"direction": sort["direction"].value, "timestamp": sort["timestamp"].value},
-            "filter": {"value": "page", "property": "object"}
+            "filter": {"value": "page", "property": "object"}, "page_size": page_size
         })
