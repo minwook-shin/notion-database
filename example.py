@@ -130,6 +130,7 @@ for i in S.result:
     PROPERTY.set_title("name", "Custom_name")
     PROPERTY.set_rich_text("description", "Custom_description")
     PROPERTY.set_number("number", 2)
+    PROPERTY.set_checkbox("checkbox", False)
 
     # Update Page
     logger.debug("Update Page")

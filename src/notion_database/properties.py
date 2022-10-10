@@ -82,7 +82,7 @@ class Properties:
 
         self.result.update({col: {"multi_select": data}})
 
-    def set_checkbox(self, col, text=None):
+    def set_checkbox(self, col, text: bool = None):
         """
         checkbox configuration
 
@@ -91,7 +91,8 @@ class Properties:
         :return:
         """
         if not text:
-            text = {}
+            # unset the checkbox
+            text = False
         self.result.update({col: {"checkbox": text}})
 
     def set_url(self, col, text=None):

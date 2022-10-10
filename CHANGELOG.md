@@ -1,5 +1,12 @@
 # Changelog
 
+## 2022-06-28.2 (2022-10-10)
+
+### Improvements
+
+* Fix checkbox issue
+  * https://github.com/minwook-shin/notion-database/issues/8
+
 ## 2022-06-28.1 (2022-08-01)
 
 ### Features
