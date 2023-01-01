@@ -1,5 +1,19 @@
 # Changelog
 
+## 2022-06-28.3 (2023-01-01)
+
+HAPPY NEW YEAR!
+
+### Features
+
+* Add Date property
+  * PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900")
+  * PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900", "2023-01-10T01:01:01.000+0900")
+
+### Improvements
+
+* Fix set_checkbox bug
+
 ## 2022-06-28.2 (2022-10-10)
 
 ### Improvements
