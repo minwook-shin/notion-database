@@ -90,9 +90,9 @@ class Properties:
         :param text: page text. If no text is given, for database only.
         :return:
         """
-        if not text:
+        if text is None:
             # unset the checkbox
-            text = False
+            text = {}
         self.result.update({col: {"checkbox": text}})
 
     def set_url(self, col, text=None):
@@ -130,6 +130,26 @@ class Properties:
         if not text:
             text = {}
         self.result.update({col: {"phone_number": text}})
+
+    def set_date(self, col, start=None, end=None):
+        """
+        date configuration
+
+        :param col: column name
+        :param start: ISO 8601 format date, with optional time.
+        :param end: ISO 8601 formatted date, with optional time. Represents the end of a date range.
+        :return:
+        """
+        if (not start) and (not end):
+            self.result.update({col: {"date": {}}})
+        elif not start:
+            from datetime import datetime
+            start = datetime.now().isoformat()
+            self.result.update({col: {"date": {"start": start}}})
+        elif not end:
+            self.result.update({col: {"date": {"start": start}}})
+        else:
+            self.result.update({col: {"date": {"start": start, "end": end}}})
 
     def clear(self):
         """

@@ -45,7 +45,7 @@ Properties
    from notion_database.properties import Properties
 
    PROPERTY = Properties()
-   PROPERTY.set_title("name")
+   PROPERTY.set_title("title")
    PROPERTY.set_rich_text("description")
    PROPERTY.set_number("number")
    PROPERTY.set_select("select")
@@ -54,6 +54,7 @@ Properties
    PROPERTY.set_url("url")
    PROPERTY.set_email("email")
    PROPERTY.set_phone_number("phone")
+   PROPERTY.set_date("date")
 
 -  For Page
 
@@ -62,7 +63,7 @@ Properties
    from notion_database.properties import Properties
 
    PROPERTY = Properties()
-   PROPERTY.set_title("name", "title")
+   PROPERTY.set_title("title", "title")
    PROPERTY.set_rich_text("description", "notion-database")
    PROPERTY.set_number("number", 1)
    PROPERTY.set_select("select", "test1")
@@ -71,6 +72,7 @@ Properties
    PROPERTY.set_url("url", "www.google.com")
    PROPERTY.set_email("email", "test@test.com")
    PROPERTY.set_phone_number("phone", "010-0000-0000")
+   PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900", "2023-01-10T01:01:01.000+0900")
 
 Create Page
 ~~~~~~~~~~~

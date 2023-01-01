@@ -36,7 +36,7 @@ for i in S.result:
     logger.debug(database_id)
 
     PROPERTY = Properties()
-    PROPERTY.set_title("name")
+    PROPERTY.set_title("title")
     PROPERTY.set_rich_text("description")
     PROPERTY.set_number("number")
     PROPERTY.set_select("select")
@@ -46,6 +46,7 @@ for i in S.result:
     PROPERTY.set_url("url")
     PROPERTY.set_email("email")
     PROPERTY.set_phone_number("phone")
+    PROPERTY.set_date("date")
 
     # Get Properties and Remove/Update Database
     logger.debug("Get properties")
@@ -61,7 +62,6 @@ for i in S.result:
 
     PROPERTY = Properties()
     PROPERTY.set_title("title", "title")
-    PROPERTY.set_title("name", "notion-api")
     PROPERTY.set_rich_text("description", "notion-database")
     PROPERTY.set_number("number", 1)
     PROPERTY.set_select("select", "test1")
@@ -71,6 +71,7 @@ for i in S.result:
     PROPERTY.set_url("url", "www.google.com")
     PROPERTY.set_email("email", "test@test.com")
     PROPERTY.set_phone_number("phone", "010-0000-0000")
+    PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900")
 
     # Children block
     logger.debug("Set Children block")
@@ -127,10 +128,11 @@ for i in S.result:
     P.retrieve_page(page_id=page_id)
 
     PROPERTY.clear()
-    PROPERTY.set_title("name", "Custom_name")
+    PROPERTY.set_title("title", "Custom_name")
     PROPERTY.set_rich_text("description", "Custom_description")
     PROPERTY.set_number("number", 2)
     PROPERTY.set_checkbox("checkbox", False)
+    PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900", "2023-01-10T01:01:01.000+0900")
 
     # Update Page
     logger.debug("Update Page")
