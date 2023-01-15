@@ -55,6 +55,7 @@ Properties
    PROPERTY.set_email("email")
    PROPERTY.set_phone_number("phone")
    PROPERTY.set_date("date")
+   PROPERTY.set_files("file")
 
 -  For Page
 
@@ -73,6 +74,7 @@ Properties
    PROPERTY.set_email("email", "test@test.com")
    PROPERTY.set_phone_number("phone", "010-0000-0000")
    PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900", "2023-01-10T01:01:01.000+0900")
+   PROPERTY.set_files("file", files_list=["https://github.githubassets.com/images/modules/logos_page/Octocat.png"])
 
 Create Page
 ~~~~~~~~~~~
@@ -198,23 +200,34 @@ Children block
    children = Children()
 
    children.set_paragraph("set_paragraph")
+   children.set_paragraph("set_paragraph", color=clr.BLUE)
 
    children.set_heading_1("set_heading_1")
    children.set_heading_2("set_heading_2")
    children.set_heading_3("set_heading_3")
+   children.set_heading_1("set_heading_1", color=clr.BLUE)
+   children.set_heading_2("set_heading_2", color=clr.BLUE_BACKGROUND)
+   children.set_heading_3("set_heading_3", color=clr.GREEN)
 
    children.set_callout("set_callout")
+   children.set_callout("set_callout",color=clr.RED_BACKGROUND)
 
    children.set_quote("set_quote")
+   children.set_quote("set_quote",color=clr.RED)
 
    children.set_bulleted_list_item("set_bulleted_list_item")
+   children.set_bulleted_list_item("set_bulleted_list_item", color=clr.BROWN)
 
    children.set_numbered_list_item("first set_numbered_list_item")
+   children.set_numbered_list_item("second set_numbered_list_item", color=clr.BROWN)
 
    children.set_to_do("set_to_do", checked=True)
+   children.set_to_do("set_to_do", checked=False, color=clr.RED)
 
-   children.set_toggle("set_toggle", children_text="WOW!")
+   children.set_toggle("set_toggle", children_text="WOW!", color=clr.BLUE)
 
+   children.set_code("set_code")
+   children.set_code("const a = 1", lang="javascript")
    children.set_code("print(\"hello world!\")", lang='python')
 
    children.set_embed("https://www.google.com")
