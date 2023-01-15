@@ -1,3 +1,5 @@
+import notion_database.color as clr
+
 class Children:
     def __init__(self):
         """
@@ -5,11 +7,12 @@ class Children:
         """
         self.result = []
 
-    def set_paragraph(self, text=None):
+    def set_paragraph(self, text=None, color=clr.DEFAULT):
         """
         paragraph configuration
 
         :param text: children text.
+        :param color: block color.
         :return:
         """
         if not text:
@@ -19,6 +22,7 @@ class Children:
             "object": "block",
             "type": "paragraph",
             "paragraph": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -30,11 +34,12 @@ class Children:
             }
         })
 
-    def set_heading_1(self, text=None):
+    def set_heading_1(self, text=None, color=clr.DEFAULT):
         """
         heading_1 configuration
 
         :param text: children text.
+        :param color: block color.
         :return:
         """
         if not text:
@@ -44,6 +49,7 @@ class Children:
             "object": "block",
             "type": "heading_1",
             "heading_1": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -55,11 +61,12 @@ class Children:
             }
         })
 
-    def set_heading_2(self, text=None):
+    def set_heading_2(self, text=None, color=clr.DEFAULT):
         """
         heading_2 configuration
 
         :param text: children text.
+        :param color: block color.
         :return:
         """
         if not text:
@@ -69,6 +76,7 @@ class Children:
             "object": "block",
             "type": "heading_2",
             "heading_2": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -80,11 +88,12 @@ class Children:
             }
         })
 
-    def set_heading_3(self, text=None):
+    def set_heading_3(self, text=None, color=clr.DEFAULT):
         """
         heading_3 configuration
 
         :param text: children text.
+        :param color: block color.
         :return:
         """
         if not text:
@@ -94,6 +103,7 @@ class Children:
             "object": "block",
             "type": "heading_3",
             "heading_3": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -105,11 +115,12 @@ class Children:
             }
         })
 
-    def set_callout(self, text=None):
+    def set_callout(self, text=None, color=clr.DEFAULT):
         """
         callout configuration
 
         :param text: children text.
+        :param color: block color.
         :return:
         """
         if not text:
@@ -119,6 +130,7 @@ class Children:
             "object": "block",
             "type": "callout",
             "callout": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -130,11 +142,12 @@ class Children:
             }
         })
 
-    def set_quote(self, text=None):
+    def set_quote(self, text=None, color=clr.DEFAULT):
         """
         quote configuration
 
         :param text: children text.
+        :param color: block color.
         :return:
         """
         if not text:
@@ -144,6 +157,7 @@ class Children:
             "object": "block",
             "type": "quote",
             "quote": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -155,11 +169,12 @@ class Children:
             }
         })
 
-    def set_bulleted_list_item(self, text=None):
+    def set_bulleted_list_item(self, text=None, color=clr.DEFAULT):
         """
         bulleted_list_item configuration
 
         :param text: children text.
+        :param color: block color.
         :return:
         """
         if not text:
@@ -169,6 +184,7 @@ class Children:
             "object": "block",
             "type": "bulleted_list_item",
             "bulleted_list_item": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -180,11 +196,12 @@ class Children:
             }
         })
 
-    def set_numbered_list_item(self, text=None):
+    def set_numbered_list_item(self, text=None, color=clr.DEFAULT):
         """
         numbered_list_item configuration
 
         :param text: children text.
+        :param color: block color.
         :return:
         """
         if not text:
@@ -194,6 +211,7 @@ class Children:
             "object": "block",
             "type": "numbered_list_item",
             "numbered_list_item": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -205,12 +223,13 @@ class Children:
             }
         })
 
-    def set_to_do(self, text=None, checked=False):
+    def set_to_do(self, text=None, checked=False, color=clr.DEFAULT):
         """
         to_do configuration
 
         :param checked:
         :param text: children text.
+        :param color: block color.
         :return:
         """
         if not text:
@@ -220,6 +239,7 @@ class Children:
             "object": "block",
             "type": "to_do",
             "to_do": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -232,12 +252,14 @@ class Children:
             }
         })
 
-    def set_toggle(self, text=None, children_text=""):
+    def set_toggle(self, text=None, children_text="", color=clr.DEFAULT, children_color=clr.DEFAULT):
         """
         toggle configuration
 
         :param children_text:
         :param text: children text.
+        :param color: block color.
+        :param children_color: children color.
         :return:
         """
         if not text:
@@ -247,6 +269,7 @@ class Children:
             "object": "block",
             "type": "toggle",
             "toggle": {
+                "color":color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -259,6 +282,7 @@ class Children:
                     "object": "block",
                     "type": "paragraph",
                     "paragraph": {
+                        "color":children_color,
                         "rich_text": [
                             {
                                 "type": "text",
@@ -450,17 +474,18 @@ class Children:
             "divider": {}
         })
 
-    def set_table_of_contents(self):
+    def set_table_of_contents(self, color=clr.DEFAULT):
         """
         table_of_contents configuration
 
+        :param color: block color.
         :return:
         """
 
         self.result.append({
             "object": "block",
             "type": "table_of_contents",
-            "table_of_contents": {}
+            "table_of_contents": {"color":color}
         })
 
     def set_breadcrumb(self):

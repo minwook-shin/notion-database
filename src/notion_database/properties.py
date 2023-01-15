@@ -150,6 +150,23 @@ class Properties:
             self.result.update({col: {"date": {"start": start}}})
         else:
             self.result.update({col: {"date": {"start": start, "end": end}}})
+    
+    def set_files(self, col, files_list=None):
+        """
+        files configuration. Only supports external links.
+
+        :param col: column name
+        :param files_list: page files url list. If no files is given, for database only.
+        :return:
+        """
+        if files_list:
+            data = []
+            for i in files_list:
+                data.append({"type": "external", "name": i.split("/")[-1], "external": {"url": i}})
+        else:
+            data = {}
+
+        self.result.update({col: {"files": data}})
 
     def clear(self):
         """
