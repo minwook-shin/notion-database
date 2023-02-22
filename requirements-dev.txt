@@ -1,4 +1,4 @@
-python-dotenv==0.18.0
+python-dotenv==0.21.1
 setuptools
 wheel
 twine

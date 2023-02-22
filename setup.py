@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="notion-database",
-    version=NOTION_VERSION.replace("-", "") + ".4",
+    version=NOTION_VERSION.replace("-", "") + ".5",
     author="minwook-shin",
     author_email="minwook0106@gmail.com",
     description=" Notion API Database Python Implementation",
@@ -18,8 +18,8 @@ setuptools.setup(
         "Bug Tracker": "https://github.com/minwook-shin/notion-database/issues",
     },
     install_requires=[
-        "requests==2.28.1",
-        "typing-extensions==4.4.0"
+        "requests==2.28.2",
+        "typing-extensions==4.5.0"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2022-06-28.5 (2023-02-22)
+
+### Bug Fixes
+
+* Fix set_number method
+  * https://github.com/minwook-shin/notion-database/issues/11
+
+### Improvements
+
+* Update requests (2.28.2)
+* Update typing-extensions (4.5.0)
+
+### Tests
+
+* Add children part test
+
 ## 2022-06-28.4 (2023-01-15)
 
 * Add property

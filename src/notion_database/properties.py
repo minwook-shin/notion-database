@@ -1,4 +1,6 @@
 # support : "title", "rich_text", "number", "select", "multi_select", "checkbox", "url", "email", "phone_number"
+import numbers
+
 from utils import deprecate
 
 
@@ -45,11 +47,11 @@ class Properties:
         :param text: page text. If no text is given, for database only.
         :return:
         """
-        if text:
-            text = int(text)
+        if text and isinstance(text, numbers.Number):
+            number = text
         else:
-            text = {}
-        self.result.update({col: {"number": text}})
+            number = {}
+        self.result.update({col: {"number": number}})
 
     def set_select(self, col, text=None):
         """
@@ -150,7 +152,7 @@ class Properties:
             self.result.update({col: {"date": {"start": start}}})
         else:
             self.result.update({col: {"date": {"start": start, "end": end}}})
-    
+
     def set_files(self, col, files_list=None):
         """
         files configuration. Only supports external links.
