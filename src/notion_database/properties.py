@@ -47,7 +47,7 @@ class Properties:
         :param text: page text. If no text is given, for database only.
         :return:
         """
-        if text and isinstance(text, numbers.Number):
+        if (text is not None) and isinstance(text, numbers.Number):
             number = text
         else:
             number = {}

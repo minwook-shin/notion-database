@@ -1,5 +1,12 @@
 # Changelog
 
+## 2022-06-28.6 (2023-03-01)
+
+### Bug Fixes
+
+* HOTFIX : fixed set_number method
+  * https://github.com/minwook-shin/notion-database/issues/12
+
 ## 2022-06-28.5 (2023-02-22)
 
 ### Bug Fixes
