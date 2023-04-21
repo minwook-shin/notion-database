@@ -3,8 +3,8 @@ from utils import deprecate
 from notion_database.properties import Properties
 from notion_database.request import Request
 
-from src.notion_database.cover import Cover
-from src.notion_database.icon import Icon
+from notion_database.cover import Cover
+from notion_database.icon import Icon
 
 
 class Database:

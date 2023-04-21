@@ -1,5 +1,11 @@
 # Changelog
 
+## 2022-06-28.8 (2023-04-22)
+
+### Bug Fixes
+
+* HOTFIX : Fix wrong path for new Cover and Icon features
+
 ## 2022-06-28.7 (2023-04-22)
 
 ### Features
