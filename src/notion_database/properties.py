@@ -19,7 +19,7 @@ class Properties:
         :param text: page text. If no text is given, for database only.
         :return:
         """
-        if text:
+        if (text is not None) and isinstance(text, str):
             text = [{"text": {"content": text}}]
         else:
             text = {}
@@ -33,7 +33,7 @@ class Properties:
         :param text: page text. If no text is given, for database only.
         :return:
         """
-        if text:
+        if (text is not None) and isinstance(text, str):
             text = [{"text": {"content": text}}]
         else:
             text = {}

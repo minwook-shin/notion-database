@@ -3,13 +3,15 @@ import os
 import pprint
 import time
 
+import notion_database.color as clr
 from notion_database.children import Children
+from notion_database.cover import Cover
 from notion_database.database import Database
+from notion_database.icon import Icon
 from notion_database.page import Page
 from notion_database.properties import Properties
 from notion_database.query import Direction, Timestamp
 from notion_database.search import Search
-import notion_database.color as clr
 
 try:
     from dotenv import load_dotenv
@@ -56,7 +58,11 @@ for i in S.result:
     D = Database(integrations_token=NOTION_KEY)
     D.retrieve_database(database_id, get_properties=True)
     logger.debug("Remove/Update Database")
-    D.update_database(database_id=database_id, title="DB", add_properties=PROPERTY)
+    cover = Cover()
+    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
+    icon = Icon()
+    icon.set_icon_emoji("📚")
+    D.update_database(database_id=database_id, title="DB", add_properties=PROPERTY, cover=cover, icon=icon)
 
     # Retrieve Database
     logger.debug("Retrieve Database")
@@ -65,7 +71,7 @@ for i in S.result:
 
     PROPERTY = Properties()
     PROPERTY.set_title("title", "title")
-    PROPERTY.set_rich_text("description", "notion-database")
+    PROPERTY.set_rich_text("description", "")
     PROPERTY.set_number("number", 1)
     PROPERTY.set_number("number-float", 1.5)
     PROPERTY.set_select("select", "test1")
@@ -131,7 +137,11 @@ for i in S.result:
     # Create Page
     logger.debug("Create Page")
     P = Page(integrations_token=NOTION_KEY)
-    P.create_page(database_id=database_id, properties=PROPERTY, children=children)
+    cover = Cover()
+    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
+    icon = Icon()
+    icon.set_icon_emoji("📚")
+    P.create_page(database_id=database_id, properties=PROPERTY, children=children, cover=cover, icon=icon)
 
     # Retrieve Page
     logger.debug("Retrieve Page")
@@ -150,7 +160,11 @@ for i in S.result:
 
     # Update Page
     logger.debug("Update Page")
-    P.update_page(page_id=page_id, properties=PROPERTY)
+    cover = Cover()
+    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
+    icon = Icon()
+    icon.set_icon_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
+    P.update_page(page_id=page_id, properties=PROPERTY, cover=cover, icon=icon)
 
     time.sleep(1)
     # Archive Page
@@ -176,7 +190,11 @@ for i in S.result:
     PROPERTY.set_url("child_url")
     PROPERTY.set_email("child_email")
     PROPERTY.set_phone_number("child_phone")
-    D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY)
+    cover = Cover()
+    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
+    icon = Icon()
+    icon.set_icon_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
+    D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY, cover=cover, icon=icon)
 
     # Finding all pages in a database
     D.find_all_page(database_id=database_id, page_size=1)

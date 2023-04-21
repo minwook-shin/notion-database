@@ -1,5 +1,23 @@
 # Changelog
 
+## 2022-06-28.7 (2023-04-22)
+
+### Features
+
+* Add Cover and Icon for DB, Page
+  * used to create and update method
+  * optional parameter
+
+### Bug Fixes
+
+* FIX : fixed set_title, set_rich_text method
+  * PROPERTY.set_rich_text("summary", "")
+  * https://github.com/minwook-shin/notion-database/issues/13
+
+### Tests
+
+* Add cover, icon part test
+
 ## 2022-06-28.6 (2023-03-01)
 
 ### Bug Fixes

@@ -247,6 +247,16 @@ Children block
 
    # P.create_page(database_id=database_id, properties=PROPERTY, children=children)
 
+Cover & Icon block
+~~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+    cover = Cover()
+    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
+    icon = Icon()
+    icon.set_icon_emoji("📚")
+
 Building / Developing
 ---------------------
 

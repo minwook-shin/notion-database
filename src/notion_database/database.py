@@ -3,6 +3,9 @@ from utils import deprecate
 from notion_database.properties import Properties
 from notion_database.request import Request
 
+from src.notion_database.cover import Cover
+from src.notion_database.icon import Icon
+
 
 class Database:
     def __init__(self, integrations_token):
@@ -79,13 +82,15 @@ class Database:
         url = self.url + f"?page_size={str(page_size)}"
         self.result = self.request.call_api_get(url)
 
-    def create_database(self, page_id, title, properties=None):
+    def create_database(self, page_id, title, properties=None, cover: Cover = None, icon: Icon = None):
         """
         Create a database
 
         :param page_id: Notion Page ID
         :param title: Title of database as it appears in Notion
         :param properties: Property schema of database
+        :param cover:
+        :param icon:
         :return:
         """
         if properties is None:
@@ -107,9 +112,14 @@ class Database:
             ],
             "properties": properties.result
         }
+        if cover:
+            body.update(cover.result)
+        if icon:
+            body.update(icon.result)
         self.result = self.request.call_api_post(self.url, body)
 
-    def update_database(self, database_id, title=None, remove_properties=None, add_properties=None):
+    def update_database(self, database_id, title=None, remove_properties=None, add_properties=None,
+                        cover: Cover = None, icon: Icon = None):
         """
         Update database
 
@@ -117,6 +127,8 @@ class Database:
         :param title: Title of database as it appears in Notion
         :param remove_properties: Removal Property schema of database
         :param add_properties: Property schema of database
+        :param cover:
+        :param icon:
         :return:
         """
         if add_properties is None:
@@ -134,6 +146,10 @@ class Database:
                     }
                 }
             ]
+        if cover:
+            body.update(cover.result)
+        if icon:
+            body.update(icon.result)
         if remove_properties:
             body["properties"].update({i["id"]: None for i in remove_properties})
             self.result = self.request.call_api_patch(self.url + "/" + database_id, body)

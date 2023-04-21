@@ -20,6 +20,22 @@ class TestPropertyMethods(unittest.TestCase):
         }
         self.assertEqual(properties_object.result, api_value)
 
+    def test_title_for_empty_string(self):
+        properties_object = Properties()
+        properties_object.set_title(col="col_name", text="")
+        api_value = {
+            "col_name": {
+                "title": [
+                    {
+                        "text": {
+                            "content": ""
+                        }
+                    }
+                ]
+            }
+        }
+        self.assertEqual(properties_object.result, api_value)
+
     def test_title_for_setting(self):
         properties_object = Properties()
         properties_object.set_title(col="col_name")
@@ -35,6 +51,22 @@ class TestPropertyMethods(unittest.TestCase):
                     {
                         "text": {
                             "content": "test"
+                        }
+                    }
+                ]
+            }
+        }
+        self.assertEqual(properties_object.result, api_value)
+
+    def test_rich_text_for_empty_string(self):
+        properties_object = Properties()
+        properties_object.set_rich_text(col="col_name", text="")
+        api_value = {
+            "col_name": {
+                "rich_text": [
+                    {
+                        "text": {
+                            "content": ""
                         }
                     }
                 ]
