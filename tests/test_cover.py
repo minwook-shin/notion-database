@@ -1,6 +1,6 @@
 import unittest
 
-from src.notion_database.cover import Cover
+from notion_database.cover import Cover
 
 
 class TestCoverMethods(unittest.TestCase):

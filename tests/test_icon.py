@@ -1,6 +1,6 @@
 import unittest
 
-from src.notion_database.icon import Icon
+from notion_database.icon import Icon
 
 
 class TestIconMethods(unittest.TestCase):

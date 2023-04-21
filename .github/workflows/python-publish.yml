@@ -36,6 +36,8 @@ jobs:
         pip install build
     - name: Build package
       run: python -m build
+    - name: Install package
+      run: python setup.py install
     - name: Test with unittest
       run: python -m unittest -v
 #    - name: Publish package

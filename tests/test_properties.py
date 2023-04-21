@@ -1,6 +1,6 @@
 import unittest
 
-from src.notion_database.properties import Properties
+from notion_database.properties import Properties
 
 
 class TestPropertyMethods(unittest.TestCase):
