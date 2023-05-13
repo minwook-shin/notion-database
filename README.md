@@ -1,10 +1,30 @@
 [![Test Python Package](https://github.com/minwook-shin/notion-database/actions/workflows/python-publish.yml/badge.svg)](https://github.com/minwook-shin/notion-database/actions/workflows/python-publish.yml)
 
 #  Python Notion Database
-> Notion API Database Python Implementation
+> Database of Pythonic Notion API
 
-created only by database from the official Notion API.
+created by database from the official Notion API.
 
+"notion database" is Notion API wrapper library.
+
+```python
+import os
+
+from notion_database.page import Page
+from notion_database.properties import Properties
+from notion_database.query import Direction, Timestamp
+from notion_database.search import Search
+
+S = Search(integrations_token=os.getenv('NOTION_KEY'))
+S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+for i in S.result:
+  PROPERTY = Properties()
+  PROPERTY.set_title("title", "title")
+  PROPERTY.set_rich_text("Description", "description text")
+  P = Page(integrations_token=os.getenv('NOTION_KEY'))
+  P.create_page(database_id=i["id"], properties=PROPERTY)
+```
+See detailed example [here](example.py).
 
 ## What's new notion-version
 
