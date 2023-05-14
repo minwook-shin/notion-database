@@ -3,6 +3,8 @@
 #  Python Notion Database
 > Database of Pythonic Notion API
 
+![notion-database.gif](media/notion-database.gif)
+
 created by database from the official Notion API.
 
 "notion database" is Notion API wrapper library.
