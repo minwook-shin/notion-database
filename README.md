@@ -59,17 +59,22 @@ python setup.py install
 
 ## Features
 
-* list/Retrieve/Create database
-
-* Create/update/Retrieve Page object
-
-* Get/Remove/Update Properties
-
-* Archive Page
-
-* Finding all pages in a database
-
-* Add Children Block with page
+* Blocks
+  * ✅ Append block children
+  * ✅ Retrieve block children
+* Pages
+  * ✅ Create a page
+  * ✅ Retrieve a page
+  * ✅ Retrieve a page property item
+  * ✅ Update page properties
+  * ✅ Archive a page
+* Databases
+  * ✅ Create a database
+  * ❎ Query a database
+    * partial support
+  * ✅ Retrieve a database
+  * ✅ Update a database
+  * ✅ Update database properties
 
 ## Contributing
 
