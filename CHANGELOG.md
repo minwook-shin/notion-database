@@ -17,6 +17,22 @@ and changed the license to LGPL 3 in the hope that many people use it.
 
 * Bump requests from 2.28.2 to 2.31.0
 
+### Migration guide
+
+* past version
+```pycon
+from notion_database.query import Direction, Timestamp
+import notion_database.color as clr
+```
+
+* current version (>1.0.0)
+```pycon
+from notion_database.const.query import Direction, Timestamp
+import notion_database.const.color as clr
+```
+
+
+
 ### Deprecate
 
 * Drop support for Python 3.7
