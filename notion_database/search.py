@@ -3,8 +3,8 @@ Notion API Search
 """
 from typing import TypedDict, List, Dict
 
-from .const.query import Direction, Timestamp
-from .components.request import Request
+from notion_database.const.query import Direction, Timestamp
+from notion_database.components.request import Request
 
 
 class SortType(TypedDict):

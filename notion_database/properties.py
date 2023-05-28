@@ -5,7 +5,7 @@ import numbers
 from datetime import datetime
 from typing import Dict, List
 
-from .utils import deprecate
+from notion_database.utils import deprecate
 
 
 class Properties:  # pylint: disable=too-many-public-methods

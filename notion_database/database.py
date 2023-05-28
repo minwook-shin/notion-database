@@ -3,13 +3,13 @@ Notion API Database
 """
 from typing import Dict, List
 
-from .utils import deprecate
+from notion_database.utils import deprecate
 
-from .properties import Properties
-from .components.request import Request
+from notion_database.properties import Properties
+from notion_database.components.request import Request
 
-from .cover import Cover
-from .icon import Icon
+from notion_database.cover import Cover
+from notion_database.icon import Icon
 
 
 class Database:

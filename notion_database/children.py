@@ -3,7 +3,7 @@ Notion API Children block
 """
 from typing import List, Dict
 
-import const.color as clr
+import notion_database.const.color as clr
 
 
 class Children:  # pylint: disable=too-many-public-methods

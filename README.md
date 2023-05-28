@@ -3,7 +3,7 @@
 #  Python Notion Database
 > Database of Pythonic Notion API
 
-<img alt="notion-database.gif" height="100%" src="media/notion-database.gif" width="100%"/>
+<img alt="notion-database.gif" height="100%" src="https://github.com/minwook-shin/notion-database/blob/main/media/notion-database.gif?raw=true" width="100%"/>
 
 created by database from the official Notion API.
 
