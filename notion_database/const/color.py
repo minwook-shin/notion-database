@@ -1,3 +1,6 @@
+"""
+Color setting
+"""
 DEFAULT = "default"
 GRAY = "gray"
 BROWN = "brown"

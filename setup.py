@@ -1,16 +1,14 @@
 import setuptools
 
-from src.notion_database import NOTION_VERSION
-
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="notion-database",
-    version=NOTION_VERSION.replace("-", "") + ".8",
+    version="1.0.0",
     author="minwook-shin",
     author_email="minwook0106@gmail.com",
-    description=" Notion API Database Python Implementation",
+    description=" Python bindings for Notion Database API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/minwook-shin/notion-database",
@@ -19,14 +17,19 @@ setuptools.setup(
     },
     install_requires=[
         "requests==2.31.0",
-        "typing-extensions==4.5.0"
+        "urllib3<2.0"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: OS Independent",
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Development Status :: 5 - Production/Stable'
     ],
-    package_dir={"": "src"},
-    packages=setuptools.find_packages(where="src"),
-    python_requires=">=3.7",
+    packages=setuptools.find_packages(),
+    python_requires=">=3.8",
 )

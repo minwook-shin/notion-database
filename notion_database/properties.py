@@ -1,17 +1,25 @@
-# support : "title", "rich_text", "number", "select", "multi_select", "checkbox", "url", "email", "phone_number"
+"""
+Notion API Properties
+"""
 import numbers
+from datetime import datetime
+from typing import Dict, List
 
-from utils import deprecate
+from .utils import deprecate
 
 
-class Properties:
+class Properties:  # pylint: disable=too-many-public-methods
+    """
+    Notion API Properties class
+    """
+
     def __init__(self):
         """
         init
         """
-        self.result = {}
+        self.result: Dict = {}
 
-    def set_title(self, col, text=None):
+    def set_title(self, col: str, text=None):
         """
         title configuration
 
@@ -25,7 +33,7 @@ class Properties:
             text = {}
         self.result.update({col: {"title": text}})
 
-    def set_rich_text(self, col, text=None):
+    def set_rich_text(self, col: str, text=None):
         """
         rich_text configuration
 
@@ -39,7 +47,7 @@ class Properties:
             text = {}
         self.result.update({col: {"rich_text": text}})
 
-    def set_number(self, col, text=None):
+    def set_number(self, col: str, text=None):
         """
         number configuration
 
@@ -53,7 +61,7 @@ class Properties:
             number = {}
         self.result.update({col: {"number": number}})
 
-    def set_select(self, col, text=None):
+    def set_select(self, col: str, text=None):
         """
         select configuration
 
@@ -67,7 +75,7 @@ class Properties:
             text = {}
         self.result.update({col: {"select": text}})
 
-    def set_multi_select(self, col, text_list=None):
+    def set_multi_select(self, col: str, text_list: List[str] = None):
         """
         multi select configuration
 
@@ -84,7 +92,7 @@ class Properties:
 
         self.result.update({col: {"multi_select": data}})
 
-    def set_checkbox(self, col, text: bool = None):
+    def set_checkbox(self, col: str, text: bool = None):
         """
         checkbox configuration
 
@@ -97,7 +105,7 @@ class Properties:
             text = {}
         self.result.update({col: {"checkbox": text}})
 
-    def set_url(self, col, text=None):
+    def set_url(self, col: str, text=None):
         """
         url configuration
 
@@ -109,7 +117,7 @@ class Properties:
             text = {}
         self.result.update({col: {"url": text}})
 
-    def set_email(self, col, text=None):
+    def set_email(self, col: str, text=None):
         """
         email configuration
 
@@ -121,7 +129,7 @@ class Properties:
             text = {}
         self.result.update({col: {"email": text}})
 
-    def set_phone_number(self, col, text=None):
+    def set_phone_number(self, col: str, text=None):
         """
         phone_number configuration
 
@@ -133,7 +141,7 @@ class Properties:
             text = {}
         self.result.update({col: {"phone_number": text}})
 
-    def set_date(self, col, start=None, end=None):
+    def set_date(self, col: str, start: str = None, end: str = None):
         """
         date configuration
 
@@ -145,7 +153,6 @@ class Properties:
         if (not start) and (not end):
             self.result.update({col: {"date": {}}})
         elif not start:
-            from datetime import datetime
             start = datetime.now().isoformat()
             self.result.update({col: {"date": {"start": start}}})
         elif not end:
@@ -153,7 +160,7 @@ class Properties:
         else:
             self.result.update({col: {"date": {"start": start, "end": end}}})
 
-    def set_files(self, col, files_list=None):
+    def set_files(self, col: str, files_list: List[str] = None):
         """
         files configuration. Only supports external links.
 
@@ -179,7 +186,7 @@ class Properties:
         self.result.clear()
 
 
-class Children:
+class Children:  # pylint: disable=too-few-public-methods
     """
     deprecated class
     """

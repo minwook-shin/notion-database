@@ -1,27 +1,34 @@
+"""
+Notion API Page
+"""
 import logging
+from typing import Dict
 
-from notion_database.children import Children
-from notion_database.properties import Properties
-from notion_database.request import Request
+from .children import Children
+from .properties import Properties
+from .components.request import Request
 
-from notion_database.cover import Cover
-from notion_database.icon import Icon
+from .cover import Cover
+from .icon import Icon
 
 LOGGER = logging.getLogger("Notion-Database")
 
 
 class Page:
+    """
+    Notion API Page class
+    """
     def __init__(self, integrations_token):
         """
         init
 
         :param integrations_token: Notion Internal Integration Token
         """
-        self.url = 'https://api.notion.com/v1/pages'
-        self.result = {}
-        self.request = Request(self.url, integrations_token=integrations_token)
+        self.url: str = 'https://api.notion.com/v1/pages'
+        self.result: Dict = {}
+        self.request: Request = Request(self.url, integrations_token=integrations_token)
 
-    def retrieve_page(self, page_id):
+    def retrieve_page(self, page_id: str):
         """
         Retrieve a page
 
@@ -30,7 +37,8 @@ class Page:
         """
         self.result = self.request.call_api_get(self.url + "/" + page_id)
 
-    def create_page(self, database_id, properties=None, children=None, cover: Cover = None, icon: Icon = None):
+    def create_page(self, database_id: str, properties: Properties = None,
+                    children: Children = None, cover: Cover = None, icon: Icon = None):
         """
         Create a page
 
@@ -45,8 +53,6 @@ class Page:
             children = Children()
         if properties is None:
             properties = Properties()
-        properties = properties
-        children = children
         body = {
             "parent": {
                 "database_id": database_id
@@ -62,7 +68,8 @@ class Page:
 
         self.check_field()
 
-    def update_page(self, page_id, properties=None, cover: Cover = None, icon: Icon = None):
+    def update_page(self, page_id: str, properties: Properties = None,
+                    cover: Cover = None, icon: Icon = None):
         """
         Update page
 
@@ -85,7 +92,7 @@ class Page:
 
         self.check_field()
 
-    def archive_page(self, page_id, archived):
+    def archive_page(self, page_id: str, archived: bool):
         """
         Archive page
 

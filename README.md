@@ -14,7 +14,7 @@ import os
 
 from notion_database.page import Page
 from notion_database.properties import Properties
-from notion_database.query import Direction, Timestamp
+from notion_database.const.query import Direction, Timestamp
 from notion_database.search import Search
 
 S = Search(integrations_token=os.getenv('NOTION_KEY'))
@@ -28,7 +28,18 @@ for i in S.result:
 ```
 See detailed example [here](example.py).
 
+## License Notice
+
+hope that many people will use this package, also license has been changed to LGPL 3 from 1.0. 
+
+previous version is GPL, please be careful when using this out of version.
+
 ## What's new notion-version
+
+* 1.0.0
+  * Now that we've implemented all features, 
+  * change the version rule to the semantic version.
+  * notion-version : "2022-06-28"
 
 * 2022.08.01
   * **Update notion-version (2022-06-28)**
@@ -70,8 +81,8 @@ python setup.py install
   * ✅ Archive a page
 * Databases
   * ✅ Create a database
-  * ❎ Query a database
-    * partial support
+  * ✅ Query a database
+    * See detailed example [here](query_db_example.py).
   * ✅ Retrieve a database
   * ✅ Update a database
   * ✅ Update database properties
@@ -86,7 +97,7 @@ If you'd like to contribute, please fork the repository and use a feature branch
 
 ## Licensing
 
-The code in this project is licensed under GPL license.
+The code in this project is licensed under LGPL license.
 
 ## Example project using this package
 

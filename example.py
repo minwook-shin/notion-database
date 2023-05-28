@@ -3,14 +3,14 @@ import os
 import pprint
 import time
 
-import notion_database.color as clr
+import notion_database.const.color as clr
 from notion_database.children import Children
 from notion_database.cover import Cover
 from notion_database.database import Database
 from notion_database.icon import Icon
 from notion_database.page import Page
 from notion_database.properties import Properties
-from notion_database.query import Direction, Timestamp
+from notion_database.const.query import Direction, Timestamp
 from notion_database.search import Search
 
 try:
@@ -99,10 +99,10 @@ for i in S.result:
     children.set_heading_3("set_heading_3", color=clr.GREEN)
 
     children.set_callout("set_callout")
-    children.set_callout("set_callout",color=clr.RED_BACKGROUND)
+    children.set_callout("set_callout", color=clr.RED_BACKGROUND)
 
     children.set_quote("set_quote")
-    children.set_quote("set_quote",color=clr.RED)
+    children.set_quote("set_quote", color=clr.RED)
 
     children.set_bulleted_list_item("set_bulleted_list_item")
     children.set_bulleted_list_item("set_bulleted_list_item", color=clr.BROWN)
@@ -122,7 +122,7 @@ for i in S.result:
     children.set_embed("https://www.google.com")
 
     children.set_external_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    children.set_external_video("http://download.blender.org/peach/trailer/trailer_480p.mov")
+    children.set_external_video("https://download.blender.org/peach/trailer/trailer_480p.mov")
     children.set_external_file("https://github.com/microsoft/ML-For-Beginners/raw/main/pdf/readme.pdf")
     children.set_external_pdf("https://github.com/microsoft/ML-For-Beginners/blob/main/pdf/readme.pdf")
 
@@ -156,7 +156,7 @@ for i in S.result:
     PROPERTY.set_checkbox("checkbox", False)
     PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900", "2023-01-10T01:01:01.000+0900")
     PROPERTY.set_files("file", files_list=["https://github.githubassets.com/images/modules/logos_page/Octocat.png",
-                                           "http://download.blender.org/peach/trailer/trailer_480p.mov"])
+                                           "https://download.blender.org/peach/trailer/trailer_480p.mov"])
 
     # Update Page
     logger.debug("Update Page")

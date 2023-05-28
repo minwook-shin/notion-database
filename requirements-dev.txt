@@ -1,4 +1,6 @@
-python-dotenv==0.21.1
-setuptools
-wheel
+python-dotenv==1.0.0
+setuptools==67.8.0
+wheel==0.40.0
+tox==4.5.2
+pylint==2.17.4
 twine

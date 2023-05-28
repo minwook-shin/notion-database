@@ -1,1 +1,4 @@
+"""
+init NOTION_VERSION
+"""
 NOTION_VERSION = "2022-06-28"

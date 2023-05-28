@@ -1,13 +1,22 @@
-import notion_database.color as clr
+"""
+Notion API Children block
+"""
+from typing import List, Dict
 
-class Children:
+import const.color as clr
+
+
+class Children:  # pylint: disable=too-many-public-methods
+    """
+    Notion API Children block class
+    """
     def __init__(self):
         """
         init
         """
-        self.result = []
+        self.result: List[Dict] = []
 
-    def set_paragraph(self, text=None, color=clr.DEFAULT):
+    def set_paragraph(self, text: str = None, color: clr = clr.DEFAULT):
         """
         paragraph configuration
 
@@ -22,7 +31,7 @@ class Children:
             "object": "block",
             "type": "paragraph",
             "paragraph": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -34,7 +43,7 @@ class Children:
             }
         })
 
-    def set_heading_1(self, text=None, color=clr.DEFAULT):
+    def set_heading_1(self, text: str = None, color: clr = clr.DEFAULT):
         """
         heading_1 configuration
 
@@ -49,7 +58,7 @@ class Children:
             "object": "block",
             "type": "heading_1",
             "heading_1": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -61,7 +70,7 @@ class Children:
             }
         })
 
-    def set_heading_2(self, text=None, color=clr.DEFAULT):
+    def set_heading_2(self, text: str = None, color: clr = clr.DEFAULT):
         """
         heading_2 configuration
 
@@ -76,7 +85,7 @@ class Children:
             "object": "block",
             "type": "heading_2",
             "heading_2": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -88,7 +97,7 @@ class Children:
             }
         })
 
-    def set_heading_3(self, text=None, color=clr.DEFAULT):
+    def set_heading_3(self, text: str = None, color: clr = clr.DEFAULT):
         """
         heading_3 configuration
 
@@ -103,7 +112,7 @@ class Children:
             "object": "block",
             "type": "heading_3",
             "heading_3": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -115,7 +124,7 @@ class Children:
             }
         })
 
-    def set_callout(self, text=None, color=clr.DEFAULT):
+    def set_callout(self, text: str = None, color: clr = clr.DEFAULT):
         """
         callout configuration
 
@@ -130,7 +139,7 @@ class Children:
             "object": "block",
             "type": "callout",
             "callout": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -142,7 +151,7 @@ class Children:
             }
         })
 
-    def set_quote(self, text=None, color=clr.DEFAULT):
+    def set_quote(self, text: str = None, color: clr = clr.DEFAULT):
         """
         quote configuration
 
@@ -157,7 +166,7 @@ class Children:
             "object": "block",
             "type": "quote",
             "quote": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -169,7 +178,7 @@ class Children:
             }
         })
 
-    def set_bulleted_list_item(self, text=None, color=clr.DEFAULT):
+    def set_bulleted_list_item(self, text: str = None, color: clr = clr.DEFAULT):
         """
         bulleted_list_item configuration
 
@@ -184,7 +193,7 @@ class Children:
             "object": "block",
             "type": "bulleted_list_item",
             "bulleted_list_item": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -196,7 +205,7 @@ class Children:
             }
         })
 
-    def set_numbered_list_item(self, text=None, color=clr.DEFAULT):
+    def set_numbered_list_item(self, text: str = None, color: clr = clr.DEFAULT):
         """
         numbered_list_item configuration
 
@@ -211,7 +220,7 @@ class Children:
             "object": "block",
             "type": "numbered_list_item",
             "numbered_list_item": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -223,7 +232,7 @@ class Children:
             }
         })
 
-    def set_to_do(self, text=None, checked=False, color=clr.DEFAULT):
+    def set_to_do(self, text: str = None, checked: bool = False, color: clr = clr.DEFAULT):
         """
         to_do configuration
 
@@ -239,7 +248,7 @@ class Children:
             "object": "block",
             "type": "to_do",
             "to_do": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -252,7 +261,8 @@ class Children:
             }
         })
 
-    def set_toggle(self, text=None, children_text="", color=clr.DEFAULT, children_color=clr.DEFAULT):
+    def set_toggle(self, text: str = None, children_text: str = "",
+                   color: clr = clr.DEFAULT, children_color: clr = clr.DEFAULT):
         """
         toggle configuration
 
@@ -269,7 +279,7 @@ class Children:
             "object": "block",
             "type": "toggle",
             "toggle": {
-                "color":color,
+                "color": color,
                 "rich_text": [
                     {
                         "type": "text",
@@ -282,7 +292,7 @@ class Children:
                     "object": "block",
                     "type": "paragraph",
                     "paragraph": {
-                        "color":children_color,
+                        "color": children_color,
                         "rich_text": [
                             {
                                 "type": "text",
@@ -296,7 +306,7 @@ class Children:
             }
         })
 
-    def set_code(self, code=None, lang="plain text"):
+    def set_code(self, code: str = None, lang: str = "plain text"):
         """
         code configuration
 
@@ -323,7 +333,7 @@ class Children:
             }
         })
 
-    def set_embed(self, url=None):
+    def set_embed(self, url: str = None):
         """
         embed configuration
 
@@ -341,7 +351,7 @@ class Children:
             }
         })
 
-    def set_external_image(self, url=None):
+    def set_external_image(self, url: str = None):
         """
         external image configuration
 
@@ -362,7 +372,7 @@ class Children:
             }
         })
 
-    def set_external_video(self, url=None):
+    def set_external_video(self, url: str = None):
         """
         external video configuration
 
@@ -383,7 +393,7 @@ class Children:
             }
         })
 
-    def set_external_file(self, url=None):
+    def set_external_file(self, url: str = None):
         """
         external file configuration
 
@@ -404,7 +414,7 @@ class Children:
             }
         })
 
-    def set_external_pdf(self, url=None):
+    def set_external_pdf(self, url: str = None):
         """
         external pdf configuration
 
@@ -425,7 +435,7 @@ class Children:
             }
         })
 
-    def set_bookmark(self, url=None):
+    def set_bookmark(self, url: str = None):
         """
         bookmark configuration
 
@@ -443,7 +453,7 @@ class Children:
             }
         })
 
-    def set_equation(self, exp=None):
+    def set_equation(self, exp: str = None):
         """
         equation configuration
 
@@ -474,7 +484,7 @@ class Children:
             "divider": {}
         })
 
-    def set_table_of_contents(self, color=clr.DEFAULT):
+    def set_table_of_contents(self, color: clr = clr.DEFAULT):
         """
         table_of_contents configuration
 
@@ -485,7 +495,7 @@ class Children:
         self.result.append({
             "object": "block",
             "type": "table_of_contents",
-            "table_of_contents": {"color":color}
+            "table_of_contents": {"color": color}
         })
 
     def set_breadcrumb(self):

@@ -1,11 +1,20 @@
+"""
+Notion API Icon
+"""
+from typing import Dict
+
+
 class Icon:
+    """
+    Notion API Icon class
+    """
     def __init__(self):
         """
         init
         """
-        self.result = {}
+        self.result: Dict = {}
 
-    def set_icon_emoji(self, text=None):
+    def set_icon_emoji(self, text: str=None):
         """
         Page icon emoji.
         emoji character is supported
@@ -23,7 +32,7 @@ class Icon:
             },
         }
 
-    def set_icon_image(self, text=None):
+    def set_icon_image(self, text: str = None):
         """
         Page icon image.
         type of "external" is supported

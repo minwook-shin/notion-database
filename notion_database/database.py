@@ -1,25 +1,33 @@
-from utils import deprecate
+"""
+Notion API Database
+"""
+from typing import Dict, List
 
-from notion_database.properties import Properties
-from notion_database.request import Request
+from .utils import deprecate
 
-from notion_database.cover import Cover
-from notion_database.icon import Icon
+from .properties import Properties
+from .components.request import Request
+
+from .cover import Cover
+from .icon import Icon
 
 
 class Database:
-    def __init__(self, integrations_token):
+    """
+    Notion API Database class
+    """
+    def __init__(self, integrations_token: str):
         """
         init
 
         :param integrations_token: Notion Internal Integration Token
         """
-        self.properties_list = []
-        self.url = 'https://api.notion.com/v1/databases'
-        self.result = {}
-        self.request = Request(self.url, integrations_token=integrations_token)
+        self.properties_list: List[Dict] = []
+        self.url: str = 'https://api.notion.com/v1/databases'
+        self.result: Dict = {}
+        self.request: Request = Request(self.url, integrations_token=integrations_token)
 
-    def retrieve_database(self, database_id, get_properties=False):
+    def retrieve_database(self, database_id: str, get_properties: bool = False):
         """
         Retrieve a database
 
@@ -36,22 +44,30 @@ class Database:
                     continue
                 self.properties_list.append(property_value)
 
+    @deprecate.deprecated_warn
     def query_database(self):
-        # Not Implemented
-        pass
-
-    def run_query_database(self, database_id, body=None):
         """
-        for developer
-        :param database_id:
-        :param body:
+        (deprecated) query database
+
+        move to run_query_database function
+        """
+
+    def run_query_database(self, database_id: str, db_filter: Dict = None, db_sort: Dict = None):
+        """
+        Gets a list of Pages contained in the database
+        :param database_id: Identifier for a Notion database
+        :param db_sort: Sorts are similar to the sorts provided in the Notion UI
+        :param db_filter: Filters are similar to the filters provided in the Notion UI
         :return:
         """
-        if body is None:
-            body = {}
+        body = {}
+        if db_filter:
+            body["filter"] = db_filter
+        if db_sort:
+            body["sorts"] = [db_sort]
         self.result = self.request.call_api_post(self.url + "/" + database_id + "/query", body)
 
-    def find_all_page(self, database_id, page_size=100, start_cursor: str = None):
+    def find_all_page(self, database_id: str, page_size: int = 100, start_cursor: str = None):
         """
         find all database page
         :param database_id: Identifier for a Notion database
@@ -72,7 +88,7 @@ class Database:
         self.result = self.request.call_api_post(self.url + "/" + database_id + "/query", body)
 
     @deprecate.deprecated_warn
-    def list_databases(self, page_size=100):
+    def list_databases(self, page_size:int =100):
         """
         List databases ('This API is deprecated.')
 
@@ -82,7 +98,8 @@ class Database:
         url = self.url + f"?page_size={str(page_size)}"
         self.result = self.request.call_api_get(url)
 
-    def create_database(self, page_id, title, properties=None, cover: Cover = None, icon: Icon = None):
+    def create_database(self, page_id: str, title:str,
+                        properties: Properties = None, cover: Cover = None, icon: Icon = None):
         """
         Create a database
 
@@ -95,7 +112,6 @@ class Database:
         """
         if properties is None:
             properties = Properties()
-        properties = properties
         body = {
             "parent": {
                 "type": "page_id",
@@ -118,7 +134,8 @@ class Database:
             body.update(icon.result)
         self.result = self.request.call_api_post(self.url, body)
 
-    def update_database(self, database_id, title=None, remove_properties=None, add_properties=None,
+    def update_database(self, database_id: str, title: str = None,
+                        remove_properties=None, add_properties=None,
                         cover: Cover = None, icon: Icon = None):
         """
         Update database
