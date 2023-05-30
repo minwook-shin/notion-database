@@ -1,7 +1,7 @@
 import os
 import pprint
 
-from block import Block
+from notion_database.block import Block
 from notion_database.const.query import Direction, Timestamp
 from notion_database.database import Database
 from notion_database.search import Search
