@@ -86,6 +86,9 @@ python setup.py install
   * ✅ Retrieve a database
   * ✅ Update a database
   * ✅ Update database properties
+* Blocks
+  * ✅ Retrieve a block
+  * ✅ Retrieve block children
 
 ## Contributing
 

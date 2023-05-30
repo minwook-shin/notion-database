@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 (2023-5-30)
+
+### Features
+
+* Add retrieve block children
+  * https://github.com/minwook-shin/notion-database/issues/16
+
 ## 1.0.0 (2023-5-28)
 
 we've implemented all features, change the version rule to the semantic version.
