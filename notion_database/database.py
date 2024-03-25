@@ -99,7 +99,7 @@ class Database:
         self.result = self.request.call_api_get(url)
 
     def create_database(self, page_id: str, title:str,
-                        properties: Properties = None, cover: Cover = None, icon: Icon = None):
+                        properties: Properties = None, cover: Cover = None, icon: Icon = None, is_inline: bool = False):
         """
         Create a database
 
@@ -108,6 +108,7 @@ class Database:
         :param properties: Property schema of database
         :param cover:
         :param icon:
+        :param is_inline: Shows the database inline of the parent page
         :return:
         """
         if properties is None:
@@ -117,6 +118,7 @@ class Database:
                 "type": "page_id",
                 "page_id": page_id
             },
+            "is_inline": is_inline,
             "title": [
                 {
                     "type": "text",
