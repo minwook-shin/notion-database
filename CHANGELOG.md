@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0 (2024-03-26)
+
+### Features
+
+* Add support for is_inline param to create_database function
+  * Notion API supports creating new databases as inline of parent pages.
+  * https://github.com/minwook-shin/notion-database/pull/19
+  * contribution by @cl-fl
+
 ## 1.1.0 (2023-5-30)
 
 ### Features
