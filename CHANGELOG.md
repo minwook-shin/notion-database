@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1 (2024-06-03)
+
+### Dependency
+
+* Update requests library to 2.32.0
+  * #20 Bump requests from 2.31.0 to 2.32.0
+
 ## 1.2.0 (2024-03-26)
 
 ### Features
