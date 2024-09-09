@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.2 (2024-09-09)
+
+## Dependency
+
+* Update requests library to 2.32.3
+  * https://github.com/minwook-shin/notion-database/issues/22
+* Update setuptools library to 74.1.2
+  * fix security issue
+
 ## 1.2.1 (2024-06-03)
 
 ### Dependency
