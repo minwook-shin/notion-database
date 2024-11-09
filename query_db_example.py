@@ -44,3 +44,9 @@ for i in result:
                                     ]
                                 })
     pprint.pprint(database.result)
+
+    search_pages = NotionDatabase.search_pages(integrations_token=NOTION_KEY,
+                                               sort={"direction": Direction.ascending,
+                                                     "timestamp": Timestamp.last_edited_time},
+                                               query="Custom_description")
+    pprint.pprint(search_pages)
