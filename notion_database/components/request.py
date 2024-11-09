@@ -6,7 +6,7 @@ from typing import Dict
 
 import requests
 
-from notion_database import NOTION_VERSION
+from notion_database.const import NOTION_VERSION
 
 
 class Request:

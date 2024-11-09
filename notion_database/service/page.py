@@ -4,12 +4,12 @@ Notion API Page
 import logging
 from typing import Dict
 
-from notion_database.children import Children
-from notion_database.properties import Properties
+from notion_database.service.children import Children
+from notion_database.service.properties import Properties
 from notion_database.components.request import Request
 
-from notion_database.cover import Cover
-from notion_database.icon import Icon
+from notion_database.service.cover import Cover
+from notion_database.service.icon import Icon
 
 LOGGER = logging.getLogger("Notion-Database")
 

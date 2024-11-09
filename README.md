@@ -12,13 +12,14 @@ created by database from the official Notion API.
 ```python
 import os
 
-from notion_database.page import Page
-from notion_database.properties import Properties
+from notion_database.service.page import Page
+from notion_database.service.properties import Properties
 from notion_database.const.query import Direction, Timestamp
-from notion_database.search import Search
+from notion_database import NotionDatabase
 
-S = Search(integrations_token=os.getenv('NOTION_KEY'))
-S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+result = NotionDatabase.search(integrations_token=os.getenv('NOTION_KEY'),
+                               sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+
 for i in S.result:
   PROPERTY = Properties()
   PROPERTY.set_title("title", "title")
@@ -35,6 +36,9 @@ hope that many people will use this package, also license has been changed to LG
 previous version is GPL, please be careful when using this out of version.
 
 ## What's new notion-version
+
+* 2.0
+  * refactor the code to be more readable and maintainable.
 
 * 1.0.0
   * Now that we've implemented all features, 

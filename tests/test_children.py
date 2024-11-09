@@ -1,6 +1,6 @@
 import unittest
 
-from notion_database.children import Children
+from notion_database.service.children import Children
 
 
 class TestChildrenMethods(unittest.TestCase):

@@ -4,14 +4,15 @@ import pprint
 import time
 
 import notion_database.const.color as clr
-from notion_database.children import Children
-from notion_database.cover import Cover
-from notion_database.database import Database
-from notion_database.icon import Icon
-from notion_database.page import Page
-from notion_database.properties import Properties
+from notion_database import NotionDatabase
+from notion_database.service.children import Children
+from notion_database.service.cover import Cover
+from notion_database.service.database import Database
+from notion_database.service.icon import Icon
+from notion_database.service.page import Page
+from notion_database.service.properties import Properties
 from notion_database.const.query import Direction, Timestamp
-from notion_database.search import Search
+# from notion_database.service.search import Search
 
 try:
     from dotenv import load_dotenv
@@ -27,14 +28,20 @@ NOTION_KEY = os.getenv('NOTION_KEY')
 
 # List Database
 logger.debug("List Database")
-S = Search(integrations_token=NOTION_KEY)
-S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+
+# Search Database method is deprecated and replaced with search method.
+
+# S = Search(integrations_token=NOTION_KEY)
+# S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+result = NotionDatabase.search(integrations_token=NOTION_KEY,
+                               sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+
 
 # List Database API is deprecated.
 # D = Database(integrations_token=NOTION_KEY)
 # D.list_databases(page_size=100)
 
-for i in S.result:
+for i in result:
     database_id = i["id"]
     logger.debug(database_id)
 

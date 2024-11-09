@@ -1,10 +1,10 @@
 import os
 import pprint
 
-from notion_database.block import Block
+from notion_database import NotionDatabase
+from notion_database.service.block import Block
 from notion_database.const.query import Direction, Timestamp
-from notion_database.database import Database
-from notion_database.search import Search
+from notion_database.service.database import Database
 
 try:
     from dotenv import load_dotenv
@@ -14,11 +14,11 @@ except ModuleNotFoundError:
     pass
 
 NOTION_KEY = os.getenv('NOTION_KEY')
+result = NotionDatabase.search(integrations_token=NOTION_KEY,
+                               sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
 
-S = Search(integrations_token=NOTION_KEY)
-S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
 
-for i in S.result:
+for i in result:
     database_id = i["id"]
     D = Database(integrations_token=NOTION_KEY)
     D.retrieve_database(database_id=database_id)
