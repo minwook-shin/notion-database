@@ -7,7 +7,7 @@ import notion_database.const.color as clr
 from notion_database import NotionDatabase
 from notion_database.service.children import Children
 from notion_database.service.cover import Cover
-from notion_database.service.database import Database
+# from notion_database.service.database import Database
 from notion_database.service.icon import Icon
 from notion_database.service.page import Page
 from notion_database.service.properties import Properties
@@ -62,19 +62,18 @@ for i in result:
 
     # Get Properties and Remove/Update Database
     logger.debug("Get properties")
-    D = Database(integrations_token=NOTION_KEY)
-    D.retrieve_database(database_id, get_properties=True)
+    NotionDatabase.retrieve_database(integrations_token=NOTION_KEY, database_id=database_id, get_properties=True)
     logger.debug("Remove/Update Database")
     cover = Cover()
     cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
     icon = Icon()
     icon.set_icon_emoji("📚")
-    D.update_database(database_id=database_id, title="DB", add_properties=PROPERTY, cover=cover, icon=icon)
+    NotionDatabase.update_database(integrations_token=NOTION_KEY, database_id=database_id, title="DB",
+                                   add_properties=PROPERTY, cover=cover, icon=icon)
 
     # Retrieve Database
     logger.debug("Retrieve Database")
-    D = Database(integrations_token=NOTION_KEY)
-    D.retrieve_database(database_id=database_id)
+    NotionDatabase.retrieve_database(integrations_token=NOTION_KEY, database_id=database_id)
 
     PROPERTY = Properties()
     PROPERTY.set_title("title", "title")
@@ -201,14 +200,16 @@ for i in result:
     cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
     icon = Icon()
     icon.set_icon_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY, cover=cover, icon=icon)
+    NotionDatabase.create_database(integrations_token=NOTION_KEY, page_id=page_id, title="TEST TITLE",
+                                   properties=PROPERTY, cover=cover, icon=icon)
 
     # Finding all pages in a database
-    D.find_all_page(database_id=database_id, page_size=1)
-    pprint.pprint(D.result)
+    DB = NotionDatabase.find_all_page(integrations_token=NOTION_KEY, database_id=database_id, page_size=1)
+    pprint.pprint(DB)
     # Pagination test
     logger.debug("Pagination test")
-    if D.result["has_more"]:
-        D.find_all_page(database_id=database_id, start_cursor=D.result["next_cursor"])
-        pprint.pprint(D.result)
+    if DB["has_more"]:
+        contents = NotionDatabase.find_all_page(integrations_token=NOTION_KEY,
+                                                database_id=database_id, start_cursor=DB["next_cursor"])
+        pprint.pprint(contents)
     # D.run_query_database(database_id=database_id, body={})
