@@ -5,6 +5,7 @@ from notion_database.service.database import Database
 from notion_database.service.icon import Icon
 from notion_database.service.properties import Properties
 from notion_database.service.search import Search
+from notion_database.service.block import Block
 
 
 class NotionDatabase:
@@ -67,3 +68,10 @@ class NotionDatabase:
         db.update_database(database_id=database_id, title=title,
                            remove_properties=remove_properties, add_properties=add_properties, cover=cover, icon=icon)
         return db.result
+
+    @staticmethod
+    def retrieve_block(integrations_token: str, block_id: str, is_children: bool = False,
+                       page_size: int = 100, start_cursor: str = None):
+        block = Block(integrations_token=integrations_token)
+        block.retrieve_block(block_id=block_id, is_children=is_children, page_size=page_size, start_cursor=start_cursor)
+        return block.result
