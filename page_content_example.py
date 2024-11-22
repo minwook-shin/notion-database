@@ -12,8 +12,9 @@ except ModuleNotFoundError:
     pass
 
 NOTION_KEY = os.getenv('NOTION_KEY')
-result = NotionDatabase.search(integrations_token=NOTION_KEY,
-                               sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+result = NotionDatabase.search_database(integrations_token=NOTION_KEY,
+                                        sort={"direction": Direction.ascending,
+                                              "timestamp": Timestamp.last_edited_time})
 
 
 for i in result:

@@ -12,20 +12,18 @@ created by database from the official Notion API.
 ```python
 import os
 
-from notion_database.service.page import Page
 from notion_database.service.properties import Properties
 from notion_database.const.query import Direction, Timestamp
 from notion_database import NotionDatabase
 
-result = NotionDatabase.search(integrations_token=os.getenv('NOTION_KEY'),
-                               sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+result = NotionDatabase.search_database(integrations_token=os.getenv('NOTION_KEY'),
+                                        sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
 
-for i in S.result:
+for i in result:
   PROPERTY = Properties()
   PROPERTY.set_title("title", "title")
   PROPERTY.set_rich_text("Description", "description text")
-  P = Page(integrations_token=os.getenv('NOTION_KEY'))
-  P.create_page(database_id=i["id"], properties=PROPERTY)
+  NotionDatabase.create_page(integrations_token=os.getenv('NOTION_KEY'), database_id=i["id"], properties=PROPERTY)
 ```
 See detailed example [here](example.py).
 

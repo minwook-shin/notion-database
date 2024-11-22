@@ -18,8 +18,9 @@ logger = logging.getLogger(__name__)
 NOTION_KEY = os.getenv('NOTION_KEY')
 
 logger.debug("List Database")
-result = NotionDatabase.search(integrations_token=NOTION_KEY,
-                               sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+result = NotionDatabase.search_database(integrations_token=NOTION_KEY,
+                                        sort={"direction": Direction.ascending,
+                                              "timestamp": Timestamp.last_edited_time})
 
 for i in result:
     database_id = i["id"]

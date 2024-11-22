@@ -9,7 +9,7 @@ from notion_database.service.children import Children
 from notion_database.service.cover import Cover
 # from notion_database.service.database import Database
 from notion_database.service.icon import Icon
-from notion_database.service.page import Page
+# from notion_database.service.page import Page
 from notion_database.service.properties import Properties
 from notion_database.const.query import Direction, Timestamp
 # from notion_database.service.search import Search
@@ -33,8 +33,9 @@ logger.debug("List Database")
 
 # S = Search(integrations_token=NOTION_KEY)
 # S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
-result = NotionDatabase.search(integrations_token=NOTION_KEY,
-                               sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+result = NotionDatabase.search_database(integrations_token=NOTION_KEY,
+                                        sort={"direction": Direction.ascending,
+                                              "timestamp": Timestamp.last_edited_time})
 
 
 # List Database API is deprecated.
@@ -142,18 +143,19 @@ for i in result:
 
     # Create Page
     logger.debug("Create Page")
-    P = Page(integrations_token=NOTION_KEY)
     cover = Cover()
     cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
     icon = Icon()
     icon.set_icon_emoji("📚")
-    P.create_page(database_id=database_id, properties=PROPERTY, children=children, cover=cover, icon=icon)
+    page = NotionDatabase.create_page(integrations_token=NOTION_KEY,
+                                      database_id=database_id, properties=PROPERTY, children=children,
+                                      cover=cover, icon=icon)
 
     # Retrieve Page
     logger.debug("Retrieve Page")
-    page_id = P.result["id"]
+    page_id = page["id"]
     logger.debug(page_id)
-    P.retrieve_page(page_id=page_id)
+    NotionDatabase.retrieve_page(integrations_token=NOTION_KEY, page_id=page_id)
 
     PROPERTY.clear()
     PROPERTY.set_title("title", "Custom_name")
@@ -170,17 +172,18 @@ for i in result:
     cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
     icon = Icon()
     icon.set_icon_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    P.update_page(page_id=page_id, properties=PROPERTY, cover=cover, icon=icon)
+    NotionDatabase.update_page(integrations_token=NOTION_KEY,
+                               page_id=page_id, properties=PROPERTY, cover=cover, icon=icon)
 
     time.sleep(1)
     # Archive Page
     logger.debug("Archive Database")
-    P.archive_page(page_id=page_id, archived=True)
+    NotionDatabase.archive_page(integrations_token=NOTION_KEY, page_id=page_id, archived=True)
 
     time.sleep(1)
     # Un-Archive Page
     logger.debug("Un-Archive Database")
-    P.archive_page(page_id=page_id, archived=False)
+    NotionDatabase.archive_page(integrations_token=NOTION_KEY, page_id=page_id, archived=False)
 
     # Create Database
     logger.debug("Create Database")
