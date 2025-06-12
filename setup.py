@@ -16,7 +16,7 @@ setuptools.setup(
         "Bug Tracker": "https://github.com/minwook-shin/notion-database/issues",
     },
     install_requires=[
-        "requests==2.32.4",
+        "requests>=2.32.4,<3.0",
         "urllib3<2.0"
     ],
     classifiers=[
