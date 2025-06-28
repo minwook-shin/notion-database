@@ -1,8 +1,21 @@
 # Changelog
 
+## 1.3.0 (2025-06-28)
+
+### Features
+* Add Feature to get Created Time and Last Edited Time of a Page
+* Add Feature to get Created By and Last Edited By of a Page
+    * Issue #30 : Request to Add Feature to get Create Time
+    * https://github.com/minwook-shin/notion-database/issues/30
+
+### Dependency
+
+* Update requests library to 2.32.4
+  * Version 2.32.4 of the requests library includes security fixes.
+
 ## 1.2.2 (2024-09-09)
 
-## Dependency
+### Dependency
 
 * Update requests library to 2.32.3
   * https://github.com/minwook-shin/notion-database/issues/22

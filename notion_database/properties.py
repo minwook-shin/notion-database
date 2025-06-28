@@ -177,6 +177,42 @@ class Properties:  # pylint: disable=too-many-public-methods
 
         self.result.update({col: {"files": data}})
 
+    def set_created_by(self, col: str):
+        """
+        create_by configuration
+
+        :param col: column name
+        :return:
+        """
+        self.result.update({col: {"created_by": {}}})
+
+    def set_created_time(self, col: str):
+        """
+        created_time configuration
+
+        :param col: column name
+        :return:
+        """
+        self.result.update({col: {"created_time": {}}})
+
+    def set_last_edited_by(self, col: str):
+        """
+        last_edited_by configuration
+
+        :param col: column name
+        :return:
+        """
+        self.result.update({col: {"last_edited_by": {}}})
+
+    def set_last_edited_time(self, col: str):
+        """
+        last_edited_time configuration
+
+        :param col: column name
+        :return:
+        """
+        self.result.update({col: {"last_edited_time": {}}})
+
     def clear(self):
         """
         Clear result

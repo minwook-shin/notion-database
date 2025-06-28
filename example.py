@@ -53,6 +53,11 @@ for i in S.result:
     PROPERTY.set_date("date")
     PROPERTY.set_files("file")
 
+    PROPERTY.set_created_by("created_by")
+    PROPERTY.set_created_time("created_time")
+    PROPERTY.set_last_edited_by("last_edited_by")
+    PROPERTY.set_last_edited_time("last_edited_time")
+
     # Get Properties and Remove/Update Database
     logger.debug("Get properties")
     D = Database(integrations_token=NOTION_KEY)
