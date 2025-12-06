@@ -4,14 +4,15 @@ import pprint
 import time
 
 import notion_database.const.color as clr
-from notion_database.children import Children
-from notion_database.cover import Cover
-from notion_database.database import Database
-from notion_database.icon import Icon
-from notion_database.page import Page
-from notion_database.properties import Properties
+from notion_database import NotionDatabase
+from notion_database.service.children import Children
+from notion_database.service.cover import Cover
+# from notion_database.service.database import Database
+from notion_database.service.icon import Icon
+# from notion_database.service.page import Page
+from notion_database.service.properties import Properties
 from notion_database.const.query import Direction, Timestamp
-from notion_database.search import Search
+# from notion_database.service.search import Search
 
 try:
     from dotenv import load_dotenv
@@ -27,14 +28,21 @@ NOTION_KEY = os.getenv('NOTION_KEY')
 
 # List Database
 logger.debug("List Database")
-S = Search(integrations_token=NOTION_KEY)
-S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+
+# Search Database method is deprecated and replaced with search method.
+
+# S = Search(integrations_token=NOTION_KEY)
+# S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+result = NotionDatabase.search_database(integrations_token=NOTION_KEY,
+                                        sort={"direction": Direction.ascending,
+                                              "timestamp": Timestamp.last_edited_time})
+
 
 # List Database API is deprecated.
 # D = Database(integrations_token=NOTION_KEY)
 # D.list_databases(page_size=100)
 
-for i in S.result:
+for i in result:
     database_id = i["id"]
     logger.debug(database_id)
 
@@ -60,19 +68,18 @@ for i in S.result:
 
     # Get Properties and Remove/Update Database
     logger.debug("Get properties")
-    D = Database(integrations_token=NOTION_KEY)
-    D.retrieve_database(database_id, get_properties=True)
+    NotionDatabase.retrieve_database(integrations_token=NOTION_KEY, database_id=database_id, get_properties=True)
     logger.debug("Remove/Update Database")
     cover = Cover()
     cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
     icon = Icon()
     icon.set_icon_emoji("📚")
-    D.update_database(database_id=database_id, title="DB", add_properties=PROPERTY, cover=cover, icon=icon)
+    NotionDatabase.update_database(integrations_token=NOTION_KEY, database_id=database_id, title="DB",
+                                   add_properties=PROPERTY, cover=cover, icon=icon)
 
     # Retrieve Database
     logger.debug("Retrieve Database")
-    D = Database(integrations_token=NOTION_KEY)
-    D.retrieve_database(database_id=database_id)
+    NotionDatabase.retrieve_database(integrations_token=NOTION_KEY, database_id=database_id)
 
     PROPERTY = Properties()
     PROPERTY.set_title("title", "title")
@@ -141,18 +148,19 @@ for i in S.result:
 
     # Create Page
     logger.debug("Create Page")
-    P = Page(integrations_token=NOTION_KEY)
     cover = Cover()
     cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
     icon = Icon()
     icon.set_icon_emoji("📚")
-    P.create_page(database_id=database_id, properties=PROPERTY, children=children, cover=cover, icon=icon)
+    page = NotionDatabase.create_page(integrations_token=NOTION_KEY,
+                                      database_id=database_id, properties=PROPERTY, children=children,
+                                      cover=cover, icon=icon)
 
     # Retrieve Page
     logger.debug("Retrieve Page")
-    page_id = P.result["id"]
+    page_id = page["id"]
     logger.debug(page_id)
-    P.retrieve_page(page_id=page_id)
+    NotionDatabase.retrieve_page(integrations_token=NOTION_KEY, page_id=page_id)
 
     PROPERTY.clear()
     PROPERTY.set_title("title", "Custom_name")
@@ -169,17 +177,18 @@ for i in S.result:
     cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
     icon = Icon()
     icon.set_icon_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    P.update_page(page_id=page_id, properties=PROPERTY, cover=cover, icon=icon)
+    NotionDatabase.update_page(integrations_token=NOTION_KEY,
+                               page_id=page_id, properties=PROPERTY, cover=cover, icon=icon)
 
     time.sleep(1)
     # Archive Page
     logger.debug("Archive Database")
-    P.archive_page(page_id=page_id, archived=True)
+    NotionDatabase.archive_page(integrations_token=NOTION_KEY, page_id=page_id, archived=True)
 
     time.sleep(1)
     # Un-Archive Page
     logger.debug("Un-Archive Database")
-    P.archive_page(page_id=page_id, archived=False)
+    NotionDatabase.archive_page(integrations_token=NOTION_KEY, page_id=page_id, archived=False)
 
     # Create Database
     logger.debug("Create Database")
@@ -199,14 +208,16 @@ for i in S.result:
     cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
     icon = Icon()
     icon.set_icon_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY, cover=cover, icon=icon)
+    NotionDatabase.create_database(integrations_token=NOTION_KEY, page_id=page_id, title="TEST TITLE",
+                                   properties=PROPERTY, cover=cover, icon=icon)
 
     # Finding all pages in a database
-    D.find_all_page(database_id=database_id, page_size=1)
-    pprint.pprint(D.result)
+    DB = NotionDatabase.find_all_page(integrations_token=NOTION_KEY, database_id=database_id, page_size=1)
+    pprint.pprint(DB)
     # Pagination test
     logger.debug("Pagination test")
-    if D.result["has_more"]:
-        D.find_all_page(database_id=database_id, start_cursor=D.result["next_cursor"])
-        pprint.pprint(D.result)
+    if DB["has_more"]:
+        contents = NotionDatabase.find_all_page(integrations_token=NOTION_KEY,
+                                                database_id=database_id, start_cursor=DB["next_cursor"])
+        pprint.pprint(contents)
     # D.run_query_database(database_id=database_id, body={})

@@ -5,11 +5,11 @@ from typing import Dict, List
 
 from notion_database.utils import deprecate
 
-from notion_database.properties import Properties
+from notion_database.service.properties import Properties
 from notion_database.components.request import Request
 
-from notion_database.cover import Cover
-from notion_database.icon import Icon
+from notion_database.service.cover import Cover
+from notion_database.service.icon import Icon
 
 
 class Database:

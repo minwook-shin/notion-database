@@ -1,4 +1,7 @@
 """
 init NOTION_VERSION
 """
-NOTION_VERSION = "2022-06-28"
+from notion_database.NotionDatabase import NotionDatabase
+
+
+__all__ = ["NotionDatabase"]
