@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.4.0 (2026-04-04)
+
+### Features
+
+* Add relation property support — finally resolving [#9](https://github.com/minwook-shin/notion-database/issues/9), open since Nov 21, 2022, with the help of vibe coding!
+  * Add `Properties.set_relation()` to set relation values (list of page IDs) or define relation schema for database columns
+* Add `Page.retrieve_page_property()` to fetch full property values via `/pages/{page_id}/properties/{property_id}` endpoint
+  * Required to read relation data that Notion API truncates in query results
+
+### Dependency
+
+* Update requests library to 2.33.1
+
+### Python Version Support
+
+* Drop Python 3.8, 3.9 support
+* Add Python 3.13, 3.14 support
+
 ## 1.3.0 (2025-06-28)
 
 ### Features
