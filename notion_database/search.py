@@ -1,7 +1,7 @@
 """
 Notion API Search
 """
-from typing import TypedDict, List, Dict
+from typing import TypedDict, List, Dict, Optional
 
 from notion_database.const.query import Direction, Timestamp
 from notion_database.components.request import Request
@@ -54,7 +54,7 @@ class Search:
             self.result = root_list
 
     def search_pages(self, query: str, sort: SortType,
-                     page_size: int = 100, start_cursor: str = None):
+                     page_size: int = 100, start_cursor: Optional[str] = None):
         """
         Searches all original pages and child pages that are shared with the integration
 
@@ -71,8 +71,9 @@ class Search:
                 "filter": {"value": "page", "property": "object"},
                 "page_size": page_size, "start_cursor": start_cursor
             })
-        self.result = self.request.call_api_post(self.url + "/", {
-            "query": query, "sort": {"direction": sort["direction"].value,
-                                     "timestamp": sort["timestamp"].value},
-            "filter": {"value": "page", "property": "object"}, "page_size": page_size
-        })
+        else:
+            self.result = self.request.call_api_post(self.url + "/", {
+                "query": query, "sort": {"direction": sort["direction"].value,
+                                         "timestamp": sort["timestamp"].value},
+                "filter": {"value": "page", "property": "object"}, "page_size": page_size
+            })

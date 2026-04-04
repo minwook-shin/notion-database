@@ -1,7 +1,7 @@
 """
 Notion API Database
 """
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from notion_database.utils import deprecate
 
@@ -67,7 +67,7 @@ class Database:
             body["sorts"] = [db_sort]
         self.result = self.request.call_api_post(self.url + "/" + database_id + "/query", body)
 
-    def find_all_page(self, database_id: str, page_size: int = 100, start_cursor: str = None):
+    def find_all_page(self, database_id: str, page_size: int = 100, start_cursor: Optional[str] = None):
         """
         find all database page
         :param database_id: Identifier for a Notion database
@@ -88,7 +88,7 @@ class Database:
         self.result = self.request.call_api_post(self.url + "/" + database_id + "/query", body)
 
     @deprecate.deprecated_warn
-    def list_databases(self, page_size:int =100):
+    def list_databases(self, page_size: int = 100):
         """
         List databases ('This API is deprecated.')
 
@@ -98,7 +98,7 @@ class Database:
         url = self.url + f"?page_size={str(page_size)}"
         self.result = self.request.call_api_get(url)
 
-    def create_database(self, page_id: str, title:str,
+    def create_database(self, page_id: str, title: str,
                         properties: Properties = None, cover: Cover = None, icon: Icon = None, is_inline: bool = False):
         """
         Create a database
