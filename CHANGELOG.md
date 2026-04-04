@@ -6,6 +6,8 @@
 
 * Fix `Search.search_pages()` pagination — when `start_cursor` was provided, a second
   unconditional API call immediately overwrote the result, making pagination effectively broken
+* Fix `Properties.set_date()` silently dropping `end` when `start` is not provided — the `end`
+  date is now correctly included alongside the auto-generated `start` (current datetime)
 
 ### Improvements
 
