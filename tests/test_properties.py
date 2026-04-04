@@ -240,6 +240,37 @@ class TestPropertyMethods(unittest.TestCase):
         api_value = {"col_name": {'files': {}}}
         self.assertEqual(properties_object.result, api_value)
 
+    def test_relation(self):
+        properties_object = Properties()
+        properties_object.set_relation(col="col_name", id_list=["page-id-1", "page-id-2"])
+        api_value = {
+            "col_name": {
+                "relation": [
+                    {"id": "page-id-1"},
+                    {"id": "page-id-2"}
+                ]
+            }
+        }
+        self.assertEqual(properties_object.result, api_value)
+
+    def test_relation_single(self):
+        properties_object = Properties()
+        properties_object.set_relation(col="col_name", id_list=["page-id-1"])
+        api_value = {
+            "col_name": {
+                "relation": [
+                    {"id": "page-id-1"}
+                ]
+            }
+        }
+        self.assertEqual(properties_object.result, api_value)
+
+    def test_relation_for_setting(self):
+        properties_object = Properties()
+        properties_object.set_relation(col="col_name")
+        api_value = {"col_name": {"relation": {}}}
+        self.assertEqual(properties_object.result, api_value)
+
 
 if __name__ == '__main__':
     unittest.main()

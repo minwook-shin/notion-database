@@ -213,6 +213,20 @@ class Properties:  # pylint: disable=too-many-public-methods
         """
         self.result.update({col: {"last_edited_time": {}}})
 
+    def set_relation(self, col: str, id_list: List[str] = None):
+        """
+        relation configuration
+
+        :param col: column name
+        :param id_list: list of related page IDs. If no list is given, for database only.
+        :return:
+        """
+        if id_list:
+            data = [{"id": page_id} for page_id in id_list]
+        else:
+            data = {}
+        self.result.update({col: {"relation": data}})
+
     def clear(self):
         """
         Clear result
