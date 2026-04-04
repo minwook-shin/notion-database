@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="notion-database",
-    version="1.3.0",
+    version="1.4.0",
     author="minwook-shin",
     author_email="minwook0106@gmail.com",
     description=" Python bindings for Notion Database API",
@@ -23,11 +23,11 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: OS Independent",
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
         'Development Status :: 5 - Production/Stable'
     ],
     packages=setuptools.find_packages(),
