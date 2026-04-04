@@ -37,6 +37,31 @@ class Page:
         """
         self.result = self.request.call_api_get(self.url + "/" + page_id)
 
+    def retrieve_page_property(self, page_id: str, property_id: str,
+                               page_size: int = 100, start_cursor: str = None) -> dict:
+        """
+        Retrieve a page property item.
+
+        For paginated properties such as relation, rich_text, title, and people,
+        the Notion API returns truncated results in database queries.
+        Use this method to retrieve the full property value.
+
+        :param page_id: Identifier for a Notion page
+        :param property_id: Identifier for a Notion property (ID or name)
+        :param page_size: The number of items from the full list desired in the response.
+        :param start_cursor: Returns a page of results starting after the cursor provided.
+        :return: Property item or property item list dict
+        """
+        url = self.url + "/" + page_id + "/properties/" + property_id
+        params = []
+        if start_cursor:
+            params.append(f"start_cursor={start_cursor}")
+        if page_size != 100:
+            params.append(f"page_size={page_size}")
+        if params:
+            url = url + "?" + "&".join(params)
+        return self.request.call_api_get(url)
+
     def create_page(self, database_id: str, properties: Properties = None,
                     children: Children = None, cover: Cover = None, icon: Icon = None):
         """
