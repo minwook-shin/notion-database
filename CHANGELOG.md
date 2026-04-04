@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.4.1 (TBD)
+
+### Bug Fixes
+
+* Fix `Search.search_pages()` pagination — when `start_cursor` was provided, a second
+  unconditional API call immediately overwrote the result, making pagination effectively broken
+
+### Improvements
+
+* Add `response.raise_for_status()` to all HTTP methods in `Request`
+  (`call_api_post`, `call_api_get`, `call_api_patch`) so HTTP 4xx/5xx errors
+  raise an exception immediately instead of silently returning an error JSON object
+
+### Code Quality
+
+* Add `Optional[str]` to all parameters that accept `None` as a default value
+  (`start_cursor`, `text`, `url`) across `Block`, `Database`, `Page`, `Search`,
+  `Icon`, and `Cover`
+* Fix PEP 8 spacing in `Database`: `page_size:int =100` → `page_size: int = 100`,
+  `title:str` → `title: str`
+* Add missing `: str` type annotation to `Page.__init__` `integrations_token` parameter
+
 ## 1.4.0 (2026-04-04)
 
 ### Features
