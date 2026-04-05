@@ -166,8 +166,6 @@ page = client.pages.create(
     },
     icon=Icon.emoji("📚"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
-    # timezone is used to resolve template variables like @now and @today
-    timezone="Asia/Seoul",
     children=[
         # Title and intro
         BlockContent.heading_1("notion-database 2.0 Example"),
