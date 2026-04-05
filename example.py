@@ -141,12 +141,13 @@ missing = {k: v for k, v in REQUIRED_PROPERTIES.items() if k not in existing}
 
 if missing:
     log.debug("adding missing columns: %s", list(missing.keys()))
-    # In 2026-03-11 properties belong to the data_source, not the database
-    # container — update via the data_source ID when available.
-    update_id = data_source_id or database_id
-    updated = client.databases.update(update_id, properties=missing)
-    log.debug("update response object=%r id=%r",
-              updated.get("object"), updated.get("id"))
+    # In 2026-03-11 only PATCH /databases/{database_id} (container) returns
+    # 200; PATCH on the data_source_id returns 404.  Use the container ID for
+    # schema updates and verify what the response contains.
+    updated = client.databases.update(database_id, properties=missing)
+    log.debug("update response object=%r id=%r has_props=%r",
+              updated.get("object"), updated.get("id"),
+              list((updated.get("properties") or {}).keys()) or "none")
 else:
     log.debug("all required columns already exist")
 
