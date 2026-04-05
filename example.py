@@ -518,13 +518,12 @@ md_response = client.pages.retrieve_markdown(page_id)
 log.debug("markdown length: %d chars", len(md_response.get("markdown", "")))
 log.debug("truncated: %s", md_response.get("truncated"))
 
-# Replace page content with Markdown
-client.pages.update_markdown(
+# Append Markdown content to the bottom of the page
+client.pages.append_markdown(
     page_id,
-    markdown="# Updated via Markdown\n\nThis content was written using the Markdown API.",
-    allow_deleting_content=True,
+    markdown="## Appended via Markdown API\n\nThis section was added using the Markdown API.",
 )
-log.debug("page content replaced via Markdown API")
+log.debug("markdown appended to page")
 
 # ──────────────────────────────────────────────
 # 12. Users
