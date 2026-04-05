@@ -84,7 +84,6 @@ results = client.databases.query(
     "database-id",
     filter=Filter.select("Status").equals("Active"),
     sorts=[Sort.descending("Score")],
-    in_trash=False,        # exclude trashed rows
 )
 pages = results["results"]
 
@@ -98,7 +97,7 @@ results = client.databases.query(
 )
 
 # Auto-paginate (returns all pages at once)
-all_pages = client.databases.query_all("database-id", in_trash=False)
+all_pages = client.databases.query_all("database-id")
 
 # Update schema — rename, lock, and set inline layout
 client.databases.update(

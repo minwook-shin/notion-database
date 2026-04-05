@@ -368,7 +368,6 @@ if "checkbox" in _ap:
         query_id,
         filter=Filter.checkbox("checkbox").equals(False),
         sorts=[Sort.by_property("title")],
-        in_trash=False,
     )
     pprint.pprint(result)
 
@@ -402,7 +401,7 @@ if "select" in _ap and "number" in _ap:
     pprint.pprint(result)
 
 # Fetch all results with automatic pagination
-all_pages = client.databases.query_all(query_id, in_trash=False)
+all_pages = client.databases.query_all(query_id)
 log.debug("total pages: %d", len(all_pages))
 
 # Filters for people-type properties (created_by / last_edited_by)
