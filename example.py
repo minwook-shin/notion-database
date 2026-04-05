@@ -66,11 +66,14 @@ log.debug("=== 2. Retrieve & update database ===")
 db = client.databases.retrieve(database_id)
 pprint.pprint(db)
 
+# Update title, icon, cover, and layout options
 client.databases.update(
     database_id,
     title=[RichText.text("Updated DB")],
     icon=Icon.emoji("📚"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+    is_inline=False,   # show as full-page (not inline on parent page)
+    is_locked=False,   # ensure the database is editable
 )
 
 # ──────────────────────────────────────────────
@@ -130,6 +133,8 @@ page = client.pages.create(
     },
     icon=Icon.emoji("📚"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+    # timezone is used to resolve template variables like @now and @today
+    timezone="Asia/Seoul",
     children=[
         # Title and intro
         BlockContent.heading_1("notion-database 2.0 Example"),
@@ -197,6 +202,13 @@ page = client.pages.create(
             [BlockContent.paragraph("Left column")],
             [BlockContent.paragraph("Right column")],
         ]),
+
+        # Tab layout (Notion-Version: 2026-03-11)
+        BlockContent.heading_2("Tab Layout"),
+        BlockContent.tab_group([
+            BlockContent.tab("Overview", [BlockContent.paragraph("Overview content")]),
+            BlockContent.tab("Details",  [BlockContent.paragraph("Details content")]),
+        ]),
     ],
 )
 
@@ -204,14 +216,14 @@ page_id = page["id"]
 log.debug("created page: %s", page_id)
 
 # ──────────────────────────────────────────────
-# 4. Retrieve the page
+# 5. Retrieve the page
 # ──────────────────────────────────────────────
 log.debug("=== 5. Retrieve page ===")
 page = client.pages.retrieve(page_id)
 pprint.pprint(page)
 
 # ──────────────────────────────────────────────
-# 5. Update the page
+# 6. Update the page
 # ──────────────────────────────────────────────
 log.debug("=== 6. Update page ===")
 client.pages.update(
@@ -235,7 +247,7 @@ client.pages.update(
 )
 
 # ──────────────────────────────────────────────
-# 6. Retrieve block children
+# 7. Retrieve block children
 # ──────────────────────────────────────────────
 log.debug("=== 7. Retrieve block children ===")
 blocks_response = client.blocks.retrieve_children(page_id, page_size=5)
@@ -249,21 +261,25 @@ pprint.pprint(block)
 all_blocks = client.blocks.retrieve_all_children(page_id)
 log.debug("total blocks: %d", len(all_blocks))
 
-# Append a new block
+# Append blocks at end (default) and at start using position param (2026-03-11)
 client.blocks.append_children(page_id, children=[
-    BlockContent.paragraph("This block was appended after the page was created."),
+    BlockContent.paragraph("This block was appended after page creation."),
 ])
+client.blocks.append_children(page_id, children=[
+    BlockContent.paragraph("This block was prepended to the top."),
+], position={"type": "start"})
 
 # ──────────────────────────────────────────────
-# 7. Query the database (filters + sorts)
+# 8. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
 log.debug("=== 8. Query database ===")
 
-# Simple filter
+# Simple filter — only non-trashed pages
 result = client.databases.query(
     database_id,
     filter=Filter.checkbox("checkbox").equals(False),
     sorts=[Sort.by_property("title")],
+    in_trash=False,
 )
 pprint.pprint(result)
 
@@ -294,12 +310,34 @@ result = client.databases.query(
 )
 pprint.pprint(result)
 
+# Filter by result_type: only pages (excludes embedded data sources)
+result = client.databases.query(
+    database_id,
+    result_type="page",
+)
+log.debug("page-type results: %d", len(result.get("results", [])))
+
+# Filters for people-type properties (created_by / last_edited_by)
+# Replace "user-id" with a real Notion user ID
+# result = client.databases.query(
+#     database_id,
+#     filter=Filter.created_by("Created By").contains("user-id"),
+# )
+
+# Formula, rollup, and verification filters (escape-hatch via Filter.raw
+# or the dedicated helpers below)
+# Filter.formula("Computed", "string").equals("ok")
+# Filter.formula("Score",    "number").greater_than(50)
+# Filter.rollup("Tasks",     "any",    "number").greater_than(0)
+# Filter.rollup("Tags",      "every",  "rich_text").contains("urgent")
+# Filter.verification("Verified").equals("verified")
+
 # Fetch all results with automatic pagination
-all_pages = client.databases.query_all(database_id)
+all_pages = client.databases.query_all(database_id, in_trash=False)
 log.debug("total pages: %d", len(all_pages))
 
 # ──────────────────────────────────────────────
-# 8. Archive and restore the page
+# 9. Archive and restore the page
 # ──────────────────────────────────────────────
 log.debug("=== 9. Archive & restore page ===")
 time.sleep(1)
@@ -311,36 +349,83 @@ client.pages.archive(page_id, archived=False)
 log.debug("page restored")
 
 # ──────────────────────────────────────────────
-# 9. Create a child database
+# 10. Create a child database (all PropertySchema types)
 # ──────────────────────────────────────────────
 log.debug("=== 10. Create child database ===")
 child_db = client.databases.create(
     parent={"type": "page_id", "page_id": page_id},
     title=[RichText.text("Child Database")],
+    is_inline=False,
     properties={
-        "Name":        PropertySchema.title(),
-        "Description": PropertySchema.rich_text(),
-        "Score":       PropertySchema.number(),
-        "Category":    PropertySchema.select([
-                           {"name": "Option A", "color": "green"},
-                           {"name": "Option B", "color": "red"},
-                       ]),
-        "Tags":        PropertySchema.multi_select(),
-        "Active":      PropertySchema.checkbox(),
-        "Website":     PropertySchema.url(),
-        "Email":       PropertySchema.email(),
-        "Phone":       PropertySchema.phone_number(),
-        "Due":         PropertySchema.date(),
+        # Core text
+        "Name":          PropertySchema.title(),
+        "Description":   PropertySchema.rich_text(),
+        "Website":       PropertySchema.url(),
+        "Email":         PropertySchema.email(),
+        "Phone":         PropertySchema.phone_number(),
+
+        # Numeric
+        "Score":         PropertySchema.number(),
+        "Price":         PropertySchema.number("dollar"),
+
+        # Selection
+        "Category":      PropertySchema.select([
+                             {"name": "Option A", "color": "green"},
+                             {"name": "Option B", "color": "red"},
+                         ]),
+        "Tags":          PropertySchema.multi_select(),
+        "Status":        PropertySchema.status(),
+
+        # Date / time (read-only columns included for reference)
+        "Due":           PropertySchema.date(),
+        "Created":       PropertySchema.created_time(),
+        "CreatedBy":     PropertySchema.created_by(),
+        "LastEdited":    PropertySchema.last_edited_time(),
+        "LastEditedBy":  PropertySchema.last_edited_by(),
+
+        # Other
+        "Active":        PropertySchema.checkbox(),
+        "Attachment":    PropertySchema.files(),
+        "People":        PropertySchema.people(),
+
+        # Special (2026-03-11 and newer)
+        "Action":        PropertySchema.button(),        # automation trigger
+        "Location":      PropertySchema.location(),      # geographic location
+        # "LastVisited": PropertySchema.last_visited_time(),  # read-only; add if supported
+
+        # Computed
+        "Formula":       PropertySchema.formula("prop('Score') * 2"),
+        "UniqueID":      PropertySchema.unique_id(prefix="ITEM"),
     },
     icon=Icon.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
 )
-log.debug("child database: %s", child_db["id"])
+child_db_id = child_db["id"]
+log.debug("child database: %s", child_db_id)
+
+# Lock the child database to prevent accidental edits
+client.databases.update(child_db_id, is_locked=True)
+log.debug("child database locked")
 
 # ──────────────────────────────────────────────
-# 10. Users
+# 11. Markdown API (Notion-Version: 2026-03-11)
 # ──────────────────────────────────────────────
-log.debug("=== 11. Users ===")
+log.debug("=== 11. Markdown API ===")
+md_response = client.pages.retrieve_markdown(page_id)
+log.debug("markdown length: %d chars", len(md_response.get("markdown", "")))
+log.debug("truncated: %s", md_response.get("truncated"))
+
+# Replace page content with Markdown
+client.pages.update_markdown(
+    page_id,
+    markdown="# Updated via Markdown\n\nThis content was written using the Markdown API.",
+)
+log.debug("page content replaced via Markdown API")
+
+# ──────────────────────────────────────────────
+# 12. Users
+# ──────────────────────────────────────────────
+log.debug("=== 12. Users ===")
 me = client.users.me()
 log.debug("bot user: %s", me.get("name"))
 
