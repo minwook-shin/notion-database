@@ -337,7 +337,8 @@ class PropertySchema:
                 ``"shekel"``, ``"chilean_peso"``, ``"philippine_peso"``,
                 ``"dirham"``, ``"colombian_peso"``, ``"riyal"``,
                 ``"ringgit"``, ``"leu"``, ``"argentine_peso"``,
-                ``"uruguayan_peso"``, or ``"singapore_dollar"``.
+                ``"uruguayan_peso"``, ``"singapore_dollar"``,
+                ``"thai_baht"``, or ``"brazilian_real"``.
 
         Returns:
             ``{"number": {"format": format}}``
@@ -499,7 +500,8 @@ class PropertySchema:
                 ``"percent_empty"``, ``"percent_not_empty"``,
                 ``"percent_per_group"``, ``"percent_unchecked"``, ``"range"``,
                 ``"unchecked"``, ``"unique"``, ``"show_original"``,
-                ``"show_unique"``, or ``"sum"``.
+                ``"show_unique"``, ``"sum"``, ``"count_all"``,
+                ``"count_empty"``, ``"count_not_empty"``, or ``"concat"``.
             relation_property_id: Optional ID of the relation column (alternative
                 to ``relation_property_name`` for ID-based lookup).
             rollup_property_id: Optional ID of the property in the related
