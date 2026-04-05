@@ -61,28 +61,39 @@ class SearchAPI:
         sort: Optional[Dict] = None,
         start_cursor: Optional[str] = None,
         page_size: int = 100,
+        include_archived: bool = False,
     ) -> Dict:
         """Search only databases.
 
         Convenience wrapper around :meth:`search` with the database filter
-        pre-applied.
+        pre-applied.  Trashed and archived databases are excluded by default
+        because the Notion search endpoint returns them even though they can no
+        longer be retrieved via ``GET /databases/{id}``.
 
         Args:
             query: Text to search for.
             sort: Sort criteria dict.
             start_cursor: Cursor for pagination.
             page_size: Number of results per page.
+            include_archived: When ``True``, include archived/trashed databases
+                in the results.  Defaults to ``False``.
 
         Returns:
             Notion list object containing only database objects.
         """
-        return self.search(
+        response = self.search(
             query,
             filter={"value": "data_source", "property": "object"},
             sort=sort,
             start_cursor=start_cursor,
             page_size=page_size,
         )
+        if not include_archived:
+            response["results"] = [
+                r for r in response.get("results", [])
+                if not r.get("in_trash") and not r.get("archived")
+            ]
+        return response
 
     def search_pages(
         self,

@@ -56,11 +56,15 @@ if not databases:
     log.warning("No accessible databases found. Make sure the integration is shared with a page.")
     raise SystemExit(0)
 
-# Search may return databases that the integration can discover but cannot
-# access directly (e.g. not explicitly shared). Find the first retrievable one.
+# Search may return trashed / archived databases, or databases the integration
+# can discover but cannot access directly. Skip those and use the first live,
+# retrievable one.
 database_id = None
 db = None
 for candidate in databases:
+    if candidate.get("in_trash") or candidate.get("archived"):
+        log.debug("skipping trashed/archived database %s", candidate["id"])
+        continue
     cid = candidate["id"]
     try:
         db = client.databases.retrieve(cid)
