@@ -51,6 +51,11 @@ search_result = client.search.search_databases(
 )
 databases = search_result["results"]
 log.debug("found %d database(s)", len(databases))
+if databases:
+    log.debug("first result structure: object=%r type=%r id=%r in_trash=%r archived=%r",
+              databases[0].get("object"), databases[0].get("type"),
+              databases[0].get("id"), databases[0].get("in_trash"),
+              databases[0].get("archived"))
 
 if not databases:
     log.warning("No accessible databases found. Make sure the integration is shared with a page.")

@@ -65,39 +65,33 @@ class SearchAPI:
     ) -> Dict:
         """Search only databases.
 
-        Searches without a type filter and returns only results whose
-        ``object`` field equals ``"database"``.
-
-        The Notion API 2026-03-11 replaced the ``"database"`` search filter
-        value with ``"data_source"``, but ``"data_source"`` objects are a new
-        concept distinct from classic Notion databases (``object: "database"``)
-        and cannot be retrieved via ``GET /databases/{id}``.  Filtering
-        client-side on ``object == "database"`` is the reliable way to find
-        databases that are fully accessible through the Databases API.
-
-        Trashed and archived databases are excluded by default.
+        Uses the ``"data_source"`` filter value required by
+        Notion-Version 2026-03-11 (the old ``"database"`` value is no longer
+        accepted).  Trashed and archived results are excluded by default.
 
         Args:
             query: Text to search for.
             sort: Sort criteria dict.
             start_cursor: Cursor for pagination.
             page_size: Number of results per page.
-            include_archived: When ``True``, include archived/trashed databases
-                in the results.  Defaults to ``False``.
+            include_archived: When ``True``, include archived/trashed results.
+                Defaults to ``False``.
 
         Returns:
-            Notion list object containing only ``object: "database"`` results.
+            Notion list object whose ``results`` contain database objects.
         """
         response = self.search(
             query,
+            filter={"value": "data_source", "property": "object"},
             sort=sort,
             start_cursor=start_cursor,
             page_size=page_size,
         )
-        results = [r for r in response.get("results", []) if r.get("object") == "database"]
         if not include_archived:
-            results = [r for r in results if not r.get("in_trash") and not r.get("archived")]
-        response["results"] = results
+            response["results"] = [
+                r for r in response.get("results", [])
+                if not r.get("in_trash") and not r.get("archived")
+            ]
         return response
 
     def search_pages(
