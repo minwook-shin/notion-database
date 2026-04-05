@@ -43,59 +43,122 @@ NOTION_KEY = os.environ["NOTION_KEY"]
 client = NotionClient(NOTION_KEY)
 
 # ──────────────────────────────────────────────
-# ──────────────────────────────────────────────
-# 1. Find an accessible page and create a fresh example database
+# 1. Find a parent page; fall back to an existing database
 # ──────────────────────────────────────────────
 log.debug("=== 1. Find parent page ===")
+
+# Strategy 1: search with the "page" filter
+parent_page_id = None
 page_result = client.search.search_pages(
     sort={"direction": "descending", "timestamp": "last_edited_time"},
 )
-parent_page_id = None
 for p in page_result["results"]:
     if not p.get("in_trash") and not p.get("archived"):
         parent_page_id = p["id"]
-        log.debug("using parent page: %s", parent_page_id)
+        log.debug("found page via page filter: %s", parent_page_id)
         break
 
+# Strategy 2: search everything, look for object:"page"
 if parent_page_id is None:
+    all_result = client.search.search(
+        sort={"direction": "descending", "timestamp": "last_edited_time"},
+    )
+    for obj in all_result["results"]:
+        if (obj.get("object") == "page"
+                and not obj.get("in_trash")
+                and not obj.get("archived")):
+            parent_page_id = obj["id"]
+            log.debug("found page via unfiltered search: %s", parent_page_id)
+            break
+
+# Strategy 3: fall back to any accessible database and work with its schema
+database_id = None
+data_source_id = None
+fallback_db = None
+available_properties: set = set()
+if parent_page_id is None:
+    log.debug("no page found — falling back to existing database")
+    db_search = client.search.search_databases(
+        sort={"direction": "ascending", "timestamp": "last_edited_time"},
+    )
+    for candidate in db_search["results"]:
+        if candidate.get("in_trash") or candidate.get("archived"):
+            continue
+        try:
+            fallback_db = client.databases.retrieve(candidate["id"])
+            database_id = candidate["id"]
+            ds_list = fallback_db.get("data_sources") or []
+            data_source_id = ds_list[0]["id"] if ds_list else None
+            log.debug("using existing database: %s", database_id)
+            break
+        except Exception as e:
+            log.debug("skipping database %s (%s)", candidate["id"], e)
+
+if parent_page_id is None and database_id is None:
     log.warning(
-        "No accessible page found. Share at least one page with your integration "
-        "so a fresh example database can be created inside it."
+        "No accessible page or database found. "
+        "Share at least one page with your integration."
     )
     raise SystemExit(0)
 
 # ──────────────────────────────────────────────
-# 2. Create a fresh example database with all required columns
+# 2. Create a fresh example database (or reuse existing)
 # ──────────────────────────────────────────────
-log.debug("=== 2. Create example database ===")
-db_created = client.databases.create(
-    parent={"type": "page_id", "page_id": parent_page_id},
-    title=[RichText.text("notion-database 2.0 Example DB")],
-    is_inline=False,
-    properties={
-        "title":         PropertySchema.title(),
-        "description":   PropertySchema.rich_text(),
-        "number":        PropertySchema.number(),
-        "number-float":  PropertySchema.number(),
-        "select":        PropertySchema.select(),
-        "multi_select":  PropertySchema.multi_select(),
-        "multi_select2": PropertySchema.multi_select(),
-        "checkbox":      PropertySchema.checkbox(),
-        "url":           PropertySchema.url(),
-        "email":         PropertySchema.email(),
-        "phone":         PropertySchema.phone_number(),
-        "date":          PropertySchema.date(),
-        "file":          PropertySchema.files(),
-    },
-    icon=Icon.emoji("📚"),
-)
-database_id = db_created["id"]
-# In 2026-03-11 the created database has data_sources; use the first one's ID
-# for operations that target the actual data (rows / schema).
-ds_list = db_created.get("data_sources") or []
-data_source_id = ds_list[0]["id"] if ds_list else None
-log.debug("created database: %s  data_source: %s", database_id, data_source_id)
-pprint.pprint(db_created)
+log.debug("=== 2. Create / reuse example database ===")
+
+ALL_PROPERTIES = {
+    "title":         PropertySchema.title(),
+    "description":   PropertySchema.rich_text(),
+    "number":        PropertySchema.number(),
+    "number-float":  PropertySchema.number(),
+    "select":        PropertySchema.select(),
+    "multi_select":  PropertySchema.multi_select(),
+    "multi_select2": PropertySchema.multi_select(),
+    "checkbox":      PropertySchema.checkbox(),
+    "url":           PropertySchema.url(),
+    "email":         PropertySchema.email(),
+    "phone":         PropertySchema.phone_number(),
+    "date":          PropertySchema.date(),
+    "file":          PropertySchema.files(),
+}
+
+if parent_page_id is not None:
+    # Best path: create a fresh database with all required columns
+    db_created = client.databases.create(
+        parent={"type": "page_id", "page_id": parent_page_id},
+        title=[RichText.text("notion-database 2.0 Example DB")],
+        is_inline=False,
+        properties=ALL_PROPERTIES,
+        icon=Icon.emoji("📚"),
+    )
+    database_id = db_created["id"]
+    ds_list = db_created.get("data_sources") or []
+    data_source_id = ds_list[0]["id"] if ds_list else None
+    log.debug("created database: %s  data_source: %s", database_id, data_source_id)
+    pprint.pprint(db_created)
+    available_properties = set(ALL_PROPERTIES.keys())
+else:
+    # Fallback: use existing database; only populate columns that exist
+    pprint.pprint(fallback_db)
+    # Get property names from the data_source (2026-03-11) or database object
+    ds_props = {}
+    if data_source_id:
+        ds_refresh = client.search.search_databases()
+        for r in ds_refresh["results"]:
+            if r["id"] == database_id:
+                ds_props = r.get("properties") or {}
+                break
+    available_properties = set(ds_props.keys()) | set(
+        (fallback_db.get("properties") or {}).keys()
+    )
+    log.debug("existing columns: %s", sorted(available_properties))
+    missing = set(ALL_PROPERTIES) - available_properties
+    if missing:
+        log.warning(
+            "Using existing database — missing columns %s. "
+            "Share a PAGE with the integration to let the example create its own database.",
+            sorted(missing),
+        )
 
 # ──────────────────────────────────────────────
 # 3. Retrieve and update the database metadata
@@ -117,28 +180,33 @@ client.databases.update(
 # 4. Create a page (all PropertyValue types + all BlockContent types)
 # ──────────────────────────────────────────────
 log.debug("=== 4. Create page ===")
+
+# Build property values — only include columns that exist in this database
+_ap = available_properties
+page_properties: dict = {
+    "title": PropertyValue.title([
+        RichText.text("Hello, "),
+        RichText.text("Notion 2.0!", bold=True),
+    ]),
+}
+if "description"   in _ap: page_properties["description"]   = PropertyValue.rich_text("Example page created by notion-database 2.0")
+if "number"        in _ap: page_properties["number"]        = PropertyValue.number(1)
+if "number-float"  in _ap: page_properties["number-float"]  = PropertyValue.number(1.5)
+if "select"        in _ap: page_properties["select"]        = PropertyValue.select("test1")
+if "multi_select"  in _ap: page_properties["multi_select"]  = PropertyValue.multi_select(["test1", "test2"])
+if "multi_select2" in _ap: page_properties["multi_select2"] = PropertyValue.multi_select(["test1", "test2", "test3"])
+if "checkbox"      in _ap: page_properties["checkbox"]      = PropertyValue.checkbox(True)
+if "url"           in _ap: page_properties["url"]           = PropertyValue.url("https://www.google.com")
+if "email"         in _ap: page_properties["email"]         = PropertyValue.email("test@test.com")
+if "phone"         in _ap: page_properties["phone"]         = PropertyValue.phone_number("+1-555-0100")
+if "date"          in _ap: page_properties["date"]          = PropertyValue.date("2024-01-01T00:00:00.000+09:00")
+if "file"          in _ap: page_properties["file"]          = PropertyValue.files([
+    "https://github.githubassets.com/images/modules/logos_page/Octocat.png"
+])
+
 page = client.pages.create(
     parent={"database_id": database_id},
-    properties={
-        "title":         PropertyValue.title([
-                             RichText.text("Hello, "),
-                             RichText.text("Notion 2.0!", bold=True),
-                         ]),
-        "description":   PropertyValue.rich_text("Example page created by notion-database 2.0"),
-        "number":        PropertyValue.number(1),
-        "number-float":  PropertyValue.number(1.5),
-        "select":        PropertyValue.select("test1"),
-        "multi_select":  PropertyValue.multi_select(["test1", "test2"]),
-        "multi_select2": PropertyValue.multi_select(["test1", "test2", "test3"]),
-        "checkbox":      PropertyValue.checkbox(True),
-        "url":           PropertyValue.url("https://www.google.com"),
-        "email":         PropertyValue.email("test@test.com"),
-        "phone":         PropertyValue.phone_number("+1-555-0100"),
-        "date":          PropertyValue.date("2024-01-01T00:00:00.000+09:00"),
-        "file":          PropertyValue.files([
-                             "https://github.githubassets.com/images/modules/logos_page/Octocat.png"
-                         ]),
-    },
+    properties=page_properties,
     icon=Icon.emoji("📚"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
     children=[
