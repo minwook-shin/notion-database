@@ -249,5 +249,5 @@ class PagesAPI:
         """
         return self._http.patch(
             f"/pages/{page_id}/markdown",
-            {"type": "markdown", "markdown": markdown},
+            {"type": "replace_content", "markdown": markdown},
         )
