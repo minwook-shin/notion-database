@@ -360,7 +360,9 @@ except Exception as e:
 # 8. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
 log.debug("=== 8. Query database ===")
-query_id = database_id
+# In Notion API 2026-03-11 the container database cannot be queried directly;
+# rows live in the data_source.  Use data_source_id when available.
+query_id = data_source_id or database_id
 
 # Simple filter — only non-trashed pages (skip if checkbox column not present)
 if "checkbox" in _ap:
