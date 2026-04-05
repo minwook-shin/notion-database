@@ -17,7 +17,7 @@ from notion_database.exceptions import (
     NotionValidationError,
 )
 
-_NOTION_VERSION = "2022-06-28"
+_NOTION_VERSION = "2026-03-11"
 _BASE_URL = "https://api.notion.com/v1"
 
 _STATUS_TO_EXCEPTION = {

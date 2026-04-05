@@ -492,6 +492,60 @@ class BlockContent:
         }
 
     # ------------------------------------------------------------------
+    # Tab layout  (Notion-Version: 2026-03-11)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def tab(
+        title: Union[str, List[dict]],
+        children: Optional[List[dict]] = None,
+        *,
+        icon: Optional[dict] = None,
+    ) -> dict:
+        """Tab block item for organizing content into labeled sections.
+
+        Tabs must be placed inside a ``tab_group`` block.  Build a full tab
+        group using :meth:`tab_group`.
+
+        Args:
+            title: Tab label as a plain string or rich-text list.
+            children: Content blocks shown when the tab is active.
+            icon: Optional icon object for the tab label.
+
+        Returns:
+            Notion tab block dict.
+        """
+        body: dict = {"title": _rt(title)}
+        if children:
+            body["children"] = children
+        if icon is not None:
+            body["icon"] = icon
+        return {"object": "block", "type": "tab", "tab": body}
+
+    @staticmethod
+    def tab_group(tabs: List[dict]) -> dict:
+        """Tab group block containing two or more :meth:`tab` blocks.
+
+        Args:
+            tabs: List of tab block dicts built with :meth:`tab`.
+
+        Returns:
+            Notion tab_group block dict.
+
+        Example::
+
+            BlockContent.tab_group([
+                BlockContent.tab("Overview", [BlockContent.paragraph("Overview content")]),
+                BlockContent.tab("Details",  [BlockContent.paragraph("Details content")]),
+            ])
+        """
+        return {
+            "object": "block",
+            "type": "tab_group",
+            "tab_group": {"children": tabs},
+        }
+
+    # ------------------------------------------------------------------
     # Column layout
     # ------------------------------------------------------------------
 

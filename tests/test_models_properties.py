@@ -180,6 +180,29 @@ class TestPropertySchema(unittest.TestCase):
         self.assertEqual(s["rollup"]["rollup_property_name"], "Count")
         self.assertEqual(s["rollup"]["function"], "count")
 
+    def test_rollup_with_ids(self):
+        s = PropertySchema.rollup(
+            "Tasks", "Count", "sum",
+            relation_property_id="rel-id",
+            rollup_property_id="prop-id",
+        )
+        self.assertEqual(s["rollup"]["relation_property_id"], "rel-id")
+        self.assertEqual(s["rollup"]["rollup_property_id"], "prop-id")
+
+    def test_rollup_without_ids_no_extra_keys(self):
+        s = PropertySchema.rollup("Tasks", "Count", "count")
+        self.assertNotIn("relation_property_id", s["rollup"])
+        self.assertNotIn("rollup_property_id", s["rollup"])
+
+    def test_button(self):
+        self.assertEqual(PropertySchema.button(), {"button": {}})
+
+    def test_location(self):
+        self.assertEqual(PropertySchema.location(), {"location": {}})
+
+    def test_last_visited_time(self):
+        self.assertEqual(PropertySchema.last_visited_time(), {"last_visited_time": {}})
+
     def test_unique_id(self):
         self.assertIn("unique_id", PropertySchema.unique_id())
 

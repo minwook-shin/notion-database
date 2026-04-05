@@ -1,12 +1,14 @@
 """
-notion-database 2.0 – 통합 예제
+notion-database 2.0 — end-to-end example
 
-환경변수 NOTION_KEY 에 Notion Internal Integration Token 을 설정한 뒤 실행합니다.
+Set the NOTION_KEY environment variable to your Notion Internal Integration
+token before running:
 
     export NOTION_KEY=secret_xxx
     python example.py
 
-또는 프로젝트 루트에 .env 파일을 만들고 실행하면 python-dotenv 가 자동 로드합니다.
+Alternatively, create a .env file in the project root and python-dotenv will
+load it automatically.
 """
 import logging
 import os
@@ -41,115 +43,155 @@ NOTION_KEY = os.environ["NOTION_KEY"]
 client = NotionClient(NOTION_KEY)
 
 # ──────────────────────────────────────────────
-# 1. 데이터베이스 검색
 # ──────────────────────────────────────────────
-log.debug("=== 1. Search databases ===")
-search_result = client.search.search_databases(
-    sort={"direction": "ascending", "timestamp": "last_edited_time"},
+# 1. Find an accessible page and create a fresh example database
+# ──────────────────────────────────────────────
+log.debug("=== 1. Find parent page ===")
+page_result = client.search.search_pages(
+    sort={"direction": "descending", "timestamp": "last_edited_time"},
 )
-databases = search_result["results"]
-log.debug("found %d database(s)", len(databases))
+parent_page_id = None
+for p in page_result["results"]:
+    if not p.get("in_trash") and not p.get("archived"):
+        parent_page_id = p["id"]
+        log.debug("using parent page: %s", parent_page_id)
+        break
 
-if not databases:
-    log.warning("접근 가능한 데이터베이스가 없습니다. Integration 이 페이지에 공유되었는지 확인하세요.")
+if parent_page_id is None:
+    log.warning(
+        "No accessible page found. Share at least one page with your integration "
+        "so a fresh example database can be created inside it."
+    )
     raise SystemExit(0)
 
-database_id = databases[0]["id"]
-log.debug("사용할 데이터베이스: %s", database_id)
+# ──────────────────────────────────────────────
+# 2. Create a fresh example database with all required columns
+# ──────────────────────────────────────────────
+log.debug("=== 2. Create example database ===")
+db_created = client.databases.create(
+    parent={"type": "page_id", "page_id": parent_page_id},
+    title=[RichText.text("notion-database 2.0 Example DB")],
+    is_inline=False,
+    properties={
+        "title":         PropertySchema.title(),
+        "description":   PropertySchema.rich_text(),
+        "number":        PropertySchema.number(),
+        "number-float":  PropertySchema.number(),
+        "select":        PropertySchema.select(),
+        "multi_select":  PropertySchema.multi_select(),
+        "multi_select2": PropertySchema.multi_select(),
+        "checkbox":      PropertySchema.checkbox(),
+        "url":           PropertySchema.url(),
+        "email":         PropertySchema.email(),
+        "phone":         PropertySchema.phone_number(),
+        "date":          PropertySchema.date(),
+        "file":          PropertySchema.files(),
+    },
+    icon=Icon.emoji("📚"),
+)
+database_id = db_created["id"]
+# In 2026-03-11 the created database has data_sources; use the first one's ID
+# for operations that target the actual data (rows / schema).
+ds_list = db_created.get("data_sources") or []
+data_source_id = ds_list[0]["id"] if ds_list else None
+log.debug("created database: %s  data_source: %s", database_id, data_source_id)
+pprint.pprint(db_created)
 
 # ──────────────────────────────────────────────
-# 2. 데이터베이스 조회 및 업데이트
+# 3. Retrieve and update the database metadata
 # ──────────────────────────────────────────────
-log.debug("=== 2. Retrieve & update database ===")
+log.debug("=== 3. Retrieve & update database ===")
 db = client.databases.retrieve(database_id)
 pprint.pprint(db)
 
 client.databases.update(
     database_id,
-    title=[RichText.text("📖 Updated DB")],
+    title=[RichText.text("Updated Example DB")],
     icon=Icon.emoji("📚"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+    is_inline=False,
+    is_locked=False,
 )
 
 # ──────────────────────────────────────────────
-# 3. 페이지 생성 (전체 PropertyValue 타입 시연)
+# 4. Create a page (all PropertyValue types + all BlockContent types)
 # ──────────────────────────────────────────────
-log.debug("=== 3. Create page ===")
+log.debug("=== 4. Create page ===")
 page = client.pages.create(
     parent={"database_id": database_id},
     properties={
-        "title":           PropertyValue.title([
-                               RichText.text("Hello, "),
-                               RichText.text("Notion 2.0!", bold=True),
-                           ]),
-        "description":     PropertyValue.rich_text("notion-database 2.0 예제 페이지"),
-        "number":          PropertyValue.number(1),
-        "number-float":    PropertyValue.number(1.5),
-        "select":          PropertyValue.select("test1"),
-        "multi_select":    PropertyValue.multi_select(["test1", "test2"]),
-        "multi_select2":   PropertyValue.multi_select(["test1", "test2", "test3"]),
-        "checkbox":        PropertyValue.checkbox(True),
-        "url":             PropertyValue.url("https://www.google.com"),
-        "email":           PropertyValue.email("test@test.com"),
-        "phone":           PropertyValue.phone_number("010-0000-0000"),
-        "date":            PropertyValue.date("2024-01-01T00:00:00.000+0900"),
-        "file":            PropertyValue.files([
-                               "https://github.githubassets.com/images/modules/logos_page/Octocat.png"
-                           ]),
+        "title":         PropertyValue.title([
+                             RichText.text("Hello, "),
+                             RichText.text("Notion 2.0!", bold=True),
+                         ]),
+        "description":   PropertyValue.rich_text("Example page created by notion-database 2.0"),
+        "number":        PropertyValue.number(1),
+        "number-float":  PropertyValue.number(1.5),
+        "select":        PropertyValue.select("test1"),
+        "multi_select":  PropertyValue.multi_select(["test1", "test2"]),
+        "multi_select2": PropertyValue.multi_select(["test1", "test2", "test3"]),
+        "checkbox":      PropertyValue.checkbox(True),
+        "url":           PropertyValue.url("https://www.google.com"),
+        "email":         PropertyValue.email("test@test.com"),
+        "phone":         PropertyValue.phone_number("+1-555-0100"),
+        "date":          PropertyValue.date("2024-01-01T00:00:00.000+09:00"),
+        "file":          PropertyValue.files([
+                             "https://github.githubassets.com/images/modules/logos_page/Octocat.png"
+                         ]),
     },
     icon=Icon.emoji("📚"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
     children=[
-        # 제목
-        BlockContent.heading_1("Notion 2.0 예제"),
+        # Title and intro
+        BlockContent.heading_1("notion-database 2.0 Example"),
         BlockContent.paragraph([
-            RichText.text("이 페이지는 "),
+            RichText.text("This page was created with "),
             RichText.text("notion-database 2.0", bold=True),
-            RichText.text(" 으로 생성되었습니다."),
+            RichText.text("."),
         ]),
 
-        # 구분선 + 목차
+        # Structural
         BlockContent.divider(),
         BlockContent.table_of_contents(),
         BlockContent.breadcrumb(),
 
-        # 텍스트 블록
-        BlockContent.heading_2("텍스트 블록"),
-        BlockContent.paragraph("기본 단락", color=BLUE),
-        BlockContent.heading_1("제목 1"),
-        BlockContent.heading_2("제목 2", color=BLUE_BACKGROUND),
-        BlockContent.heading_3("제목 3", color=GREEN),
-        BlockContent.callout("주의 사항", color=RED_BACKGROUND),
-        BlockContent.quote("인용구입니다.", color=RED),
+        # Text blocks
+        BlockContent.heading_2("Text Blocks"),
+        BlockContent.paragraph("Plain paragraph", color=BLUE),
+        BlockContent.heading_1("Heading 1"),
+        BlockContent.heading_2("Heading 2", color=BLUE_BACKGROUND),
+        BlockContent.heading_3("Heading 3", color=GREEN),
+        BlockContent.callout("This is a callout.", color=RED_BACKGROUND),
+        BlockContent.quote("This is a quote.", color=RED),
 
-        # 목록
-        BlockContent.heading_2("목록 블록"),
-        BlockContent.bulleted_list_item("불릿 항목 1"),
-        BlockContent.bulleted_list_item("불릿 항목 2", color=BROWN),
-        BlockContent.bulleted_list_item("중첩 불릿", children=[
-            BlockContent.bulleted_list_item("하위 항목"),
+        # Lists
+        BlockContent.heading_2("List Blocks"),
+        BlockContent.bulleted_list_item("Bullet item 1"),
+        BlockContent.bulleted_list_item("Bullet item 2", color=BROWN),
+        BlockContent.bulleted_list_item("Nested bullet", children=[
+            BlockContent.bulleted_list_item("Child item"),
         ]),
-        BlockContent.numbered_list_item("순서 항목 1"),
-        BlockContent.numbered_list_item("순서 항목 2", color=BROWN),
-        BlockContent.to_do("완료된 할 일", checked=True),
-        BlockContent.to_do("미완료 할 일", checked=False, color=RED),
+        BlockContent.numbered_list_item("Numbered item 1"),
+        BlockContent.numbered_list_item("Numbered item 2", color=BROWN),
+        BlockContent.to_do("Completed task", checked=True),
+        BlockContent.to_do("Pending task", checked=False, color=RED),
 
-        # 토글
-        BlockContent.toggle("토글 헤더", color=BLUE, children=[
-            BlockContent.paragraph("토글 내용이 여기 들어갑니다."),
+        # Toggle
+        BlockContent.toggle("Toggle header", color=BLUE, children=[
+            BlockContent.paragraph("Hidden content inside the toggle."),
         ]),
 
-        # 코드
-        BlockContent.heading_2("코드 블록"),
+        # Code
+        BlockContent.heading_2("Code Blocks"),
         BlockContent.code('print("Hello, Notion!")', language="python"),
         BlockContent.code("const a = 1;", language="javascript"),
         BlockContent.code("SELECT * FROM pages;", language="sql"),
 
-        # 수식
+        # Math
         BlockContent.equation("E = mc^2"),
 
-        # 미디어 / 임베드
-        BlockContent.heading_2("미디어 블록"),
+        # Media
+        BlockContent.heading_2("Media Blocks"),
         BlockContent.image(
             "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
             caption="GitHub Octocat",
@@ -160,39 +202,39 @@ page = client.pages.create(
         BlockContent.embed("https://www.google.com"),
         BlockContent.bookmark("https://www.google.com"),
 
-        # 2단 컬럼
-        BlockContent.heading_2("컬럼 레이아웃"),
+        # Column layout
+        BlockContent.heading_2("Column Layout"),
         BlockContent.column_list([
-            [BlockContent.paragraph("왼쪽 컬럼")],
-            [BlockContent.paragraph("오른쪽 컬럼")],
+            [BlockContent.paragraph("Left column")],
+            [BlockContent.paragraph("Right column")],
         ]),
     ],
 )
 
 page_id = page["id"]
-log.debug("생성된 페이지 ID: %s", page_id)
+log.debug("created page: %s", page_id)
 
 # ──────────────────────────────────────────────
-# 4. 페이지 조회
+# 5. Retrieve the page
 # ──────────────────────────────────────────────
-log.debug("=== 4. Retrieve page ===")
+log.debug("=== 5. Retrieve page ===")
 page = client.pages.retrieve(page_id)
 pprint.pprint(page)
 
 # ──────────────────────────────────────────────
-# 5. 페이지 업데이트
+# 6. Update the page
 # ──────────────────────────────────────────────
-log.debug("=== 5. Update page ===")
+log.debug("=== 6. Update page ===")
 client.pages.update(
     page_id,
     properties={
         "title":       PropertyValue.title("Updated Title"),
-        "description": PropertyValue.rich_text("업데이트된 설명"),
+        "description": PropertyValue.rich_text("Updated description"),
         "number":      PropertyValue.number(2),
         "checkbox":    PropertyValue.checkbox(False),
         "date":        PropertyValue.date(
-                           "2024-01-01T00:00:00.000+0900",
-                           end="2024-01-31T00:00:00.000+0900",
+                           "2024-01-01T00:00:00.000+09:00",
+                           end="2024-01-31T00:00:00.000+09:00",
                        ),
         "file":        PropertyValue.files([
                            "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
@@ -204,42 +246,59 @@ client.pages.update(
 )
 
 # ──────────────────────────────────────────────
-# 6. 블록 조회 (페이지 콘텐츠)
+# 7. Retrieve block children
 # ──────────────────────────────────────────────
-log.debug("=== 6. Retrieve block children ===")
+log.debug("=== 7. Retrieve block children ===")
 blocks_response = client.blocks.retrieve_children(page_id, page_size=5)
 pprint.pprint(blocks_response)
 
-# 단일 블록 조회
 first_block_id = blocks_response["results"][0]["id"]
 block = client.blocks.retrieve(first_block_id)
 pprint.pprint(block)
 
-# 페이지네이션: 전체 블록 자동 수집
+# Fetch all children with automatic pagination
 all_blocks = client.blocks.retrieve_all_children(page_id)
-log.debug("총 블록 수: %d", len(all_blocks))
+log.debug("total blocks: %d", len(all_blocks))
 
-# 블록 추가
+# Append blocks at end (default) and at start using position param (2026-03-11)
 client.blocks.append_children(page_id, children=[
-    BlockContent.paragraph("나중에 추가된 단락입니다."),
+    BlockContent.paragraph("This block was appended after page creation."),
 ])
+client.blocks.append_children(page_id, children=[
+    BlockContent.paragraph("This block was prepended to the top."),
+], position={"type": "start"})
+
+# Tab layout (Notion-Version: 2026-03-11) — append_children only,
+# not supported in pages.create children
+try:
+    client.blocks.append_children(page_id, children=[
+        BlockContent.tab_group([
+            BlockContent.tab("Overview", [BlockContent.paragraph("Overview content")]),
+            BlockContent.tab("Details",  [BlockContent.paragraph("Details content")]),
+        ]),
+    ])
+    log.debug("tab_group appended successfully")
+except Exception as e:
+    log.warning("tab_group not supported via append_children: %s", e)
 
 # ──────────────────────────────────────────────
-# 7. 데이터베이스 쿼리 (필터 + 정렬)
+# 8. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
-log.debug("=== 7. Query database ===")
+log.debug("=== 8. Query database ===")
+query_id = database_id
 
-# 단순 필터
+# Simple filter — only non-trashed pages
 result = client.databases.query(
-    database_id,
+    query_id,
     filter=Filter.checkbox("checkbox").equals(False),
     sorts=[Sort.by_property("title")],
+    in_trash=False,
 )
 pprint.pprint(result)
 
-# 복합 필터 (OR)
+# OR compound filter
 result = client.databases.query(
-    database_id,
+    query_id,
     filter=Filter.or_([
         Filter.checkbox("checkbox").equals(False),
         Filter.number("number").greater_than_or_equal_to(2),
@@ -247,9 +306,9 @@ result = client.databases.query(
 )
 pprint.pprint(result)
 
-# 복합 필터 (AND + OR 중첩)
+# Nested AND + OR filter
 result = client.databases.query(
-    database_id,
+    query_id,
     filter=Filter.and_([
         Filter.text("title").is_not_empty(),
         Filter.or_([
@@ -264,57 +323,131 @@ result = client.databases.query(
 )
 pprint.pprint(result)
 
-# 자동 페이지네이션으로 전체 결과 수집
-all_pages = client.databases.query_all(database_id)
-log.debug("전체 페이지 수: %d", len(all_pages))
+# Filter by result_type: only pages (excludes embedded data sources)
+result = client.databases.query(
+    query_id,
+    result_type="page",
+)
+log.debug("page-type results: %d", len(result.get("results", [])))
+
+# Filters for people-type properties (created_by / last_edited_by)
+# Replace "user-id" with a real Notion user ID
+# result = client.databases.query(
+#     database_id,
+#     filter=Filter.created_by("Created By").contains("user-id"),
+# )
+
+# Formula, rollup, and verification filters (escape-hatch via Filter.raw
+# or the dedicated helpers below)
+# Filter.formula("Computed", "string").equals("ok")
+# Filter.formula("Score",    "number").greater_than(50)
+# Filter.rollup("Tasks",     "any",    "number").greater_than(0)
+# Filter.rollup("Tags",      "every",  "rich_text").contains("urgent")
+# Filter.verification("Verified").equals("verified")
+
+# Fetch all results with automatic pagination
+all_pages = client.databases.query_all(query_id, in_trash=False)
+log.debug("total pages: %d", len(all_pages))
 
 # ──────────────────────────────────────────────
-# 8. 페이지 아카이브 / 복원
+# 9. Archive and restore the page
 # ──────────────────────────────────────────────
-log.debug("=== 8. Archive & restore page ===")
+log.debug("=== 9. Archive & restore page ===")
 time.sleep(1)
 client.pages.archive(page_id)
-log.debug("페이지 아카이브 완료")
+log.debug("page archived")
 
 time.sleep(1)
 client.pages.archive(page_id, archived=False)
-log.debug("페이지 복원 완료")
+log.debug("page restored")
 
 # ──────────────────────────────────────────────
-# 9. 하위 데이터베이스 생성
+# 10. Create a child database (all PropertySchema types)
 # ──────────────────────────────────────────────
-log.debug("=== 9. Create child database ===")
+log.debug("=== 10. Create child database ===")
 child_db = client.databases.create(
     parent={"type": "page_id", "page_id": page_id},
-    title=[RichText.text("하위 데이터베이스")],
+    title=[RichText.text("Child Database")],
+    is_inline=False,
     properties={
-        "child_name":         PropertySchema.title(),
-        "child_description":  PropertySchema.rich_text(),
-        "child_number":       PropertySchema.number(),
-        "child_select":       PropertySchema.select([
-                                  {"name": "옵션A", "color": "green"},
-                                  {"name": "옵션B", "color": "red"},
-                              ]),
-        "child_multi_select": PropertySchema.multi_select(),
-        "child_checkbox":     PropertySchema.checkbox(),
-        "child_url":          PropertySchema.url(),
-        "child_email":        PropertySchema.email(),
-        "child_phone":        PropertySchema.phone_number(),
-        "child_date":         PropertySchema.date(),
+        # Core text
+        "Name":          PropertySchema.title(),
+        "Description":   PropertySchema.rich_text(),
+        "Website":       PropertySchema.url(),
+        "Email":         PropertySchema.email(),
+        "Phone":         PropertySchema.phone_number(),
+
+        # Numeric
+        "Score":         PropertySchema.number(),
+        "Price":         PropertySchema.number("dollar"),
+
+        # Selection
+        "Category":      PropertySchema.select([
+                             {"name": "Option A", "color": "green"},
+                             {"name": "Option B", "color": "red"},
+                         ]),
+        "Tags":          PropertySchema.multi_select(),
+        "Status":        PropertySchema.status(),
+
+        # Date / time (read-only columns included for reference)
+        "Due":           PropertySchema.date(),
+        "Created":       PropertySchema.created_time(),
+        "CreatedBy":     PropertySchema.created_by(),
+        "LastEdited":    PropertySchema.last_edited_time(),
+        "LastEditedBy":  PropertySchema.last_edited_by(),
+
+        # Other
+        "Active":        PropertySchema.checkbox(),
+        "Attachment":    PropertySchema.files(),
+        "People":        PropertySchema.people(),
+
+        # Special (2026-03-11 and newer)
+        "Action":        PropertySchema.button(),        # automation trigger
+        "Location":      PropertySchema.location(),      # geographic location
+        # "LastVisited": PropertySchema.last_visited_time(),  # read-only; add if supported
+
+        # Computed
+        "Formula":       PropertySchema.formula("prop('Score') * 2"),
+        "UniqueID":      PropertySchema.unique_id(prefix="ITEM"),
     },
     icon=Icon.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
 )
-log.debug("하위 데이터베이스 ID: %s", child_db["id"])
+child_db_id = child_db["id"]
+log.debug("child database: %s", child_db_id)
+
+# Lock the child database to prevent accidental edits
+client.databases.update(child_db_id, is_locked=True)
+log.debug("child database locked")
 
 # ──────────────────────────────────────────────
-# 10. 사용자 조회
+# 11. Markdown API (Notion-Version: 2026-03-11)
 # ──────────────────────────────────────────────
-log.debug("=== 10. Users ===")
+log.debug("=== 11. Markdown API ===")
+md_response = client.pages.retrieve_markdown(page_id)
+log.debug("markdown length: %d chars", len(md_response.get("markdown", "")))
+log.debug("truncated: %s", md_response.get("truncated"))
+
+# Replace page content with Markdown
+client.pages.update_markdown(
+    page_id,
+    markdown="# Updated via Markdown\n\nThis content was written using the Markdown API.",
+)
+log.debug("page content replaced via Markdown API")
+
+# ──────────────────────────────────────────────
+# 12. Users
+# ──────────────────────────────────────────────
+log.debug("=== 12. Users ===")
 me = client.users.me()
-log.debug("현재 봇: %s", me.get("name"))
+log.debug("bot user: %s", me.get("name"))
 
-all_users = client.users.list_all()
-log.debug("워크스페이스 사용자 수: %d", len(all_users))
+# Listing all users requires the integration to have user-reading capability
+# enabled in the Notion workspace settings. Skip gracefully if not permitted.
+try:
+    all_users = client.users.list_all()
+    log.debug("workspace users: %d", len(all_users))
+except Exception as e:
+    log.warning("could not list users (insufficient permissions): %s", e)
 
-log.debug("=== 완료 ===")
+log.debug("=== Done ===")
