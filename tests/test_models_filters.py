@@ -177,5 +177,66 @@ class TestRawFilter(unittest.TestCase):
         self.assertIs(Filter.raw(raw), raw)
 
 
+class TestCreatedByFilter(unittest.TestCase):
+    def test_contains(self):
+        f = Filter.created_by("Created By").contains("user-id")
+        self.assertEqual(f, {"property": "Created By", "created_by": {"contains": "user-id"}})
+
+    def test_is_empty(self):
+        f = Filter.created_by("Created By").is_empty()
+        self.assertEqual(f["created_by"], {"is_empty": True})
+
+
+class TestLastEditedByFilter(unittest.TestCase):
+    def test_does_not_contain(self):
+        f = Filter.last_edited_by("Last Edited By").does_not_contain("user-id")
+        self.assertEqual(f["last_edited_by"], {"does_not_contain": "user-id"})
+
+
+class TestFormulaFilter(unittest.TestCase):
+    def test_default_string_type(self):
+        f = Filter.formula("Computed").contains("hello")
+        self.assertEqual(f["property"], "Computed")
+        self.assertIn("formula.string", f)
+        self.assertIn("contains", f["formula.string"])
+
+    def test_number_type(self):
+        f = Filter.formula("Score", "number").greater_than(50)
+        self.assertIn("formula.number", f)
+
+    def test_checkbox_type(self):
+        f = Filter.formula("Done", "checkbox").equals(True)
+        self.assertIn("formula.checkbox", f)
+
+    def test_date_type(self):
+        f = Filter.formula("Deadline", "date").before("2025-01-01")
+        self.assertIn("formula.date", f)
+
+
+class TestRollupFilter(unittest.TestCase):
+    def test_default_any_number(self):
+        f = Filter.rollup("Tasks").greater_than(5)
+        self.assertEqual(f["property"], "Tasks")
+        self.assertIn("rollup.any.number", f)
+
+    def test_every_text(self):
+        f = Filter.rollup("Tags", "every", "rich_text").contains("urgent")
+        self.assertIn("rollup.every.rich_text", f)
+
+    def test_none_date(self):
+        f = Filter.rollup("Dates", "none", "date").before("2025-01-01")
+        self.assertIn("rollup.none.date", f)
+
+
+class TestVerificationFilter(unittest.TestCase):
+    def test_equals_verified(self):
+        f = Filter.verification("Verified").equals("verified")
+        self.assertEqual(f, {"property": "Verified", "verification": {"equals": "verified"}})
+
+    def test_is_empty(self):
+        f = Filter.verification("Verified").is_empty()
+        self.assertEqual(f["verification"], {"is_empty": True})
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -377,6 +377,84 @@ class Filter:
         """
         return _PropertyFilter(property_name, "unique_id")
 
+    @staticmethod
+    def created_by(property_name: str) -> _PropertyFilter:
+        """Filter on a created_by property.
+
+        Supported conditions: ``contains``, ``does_not_contain``,
+        ``is_empty``, ``is_not_empty``.
+
+        Args:
+            property_name: The name of the property column.
+        """
+        return _PropertyFilter(property_name, "created_by")
+
+    @staticmethod
+    def last_edited_by(property_name: str) -> _PropertyFilter:
+        """Filter on a last_edited_by property.
+
+        Supported conditions: ``contains``, ``does_not_contain``,
+        ``is_empty``, ``is_not_empty``.
+
+        Args:
+            property_name: The name of the property column.
+        """
+        return _PropertyFilter(property_name, "last_edited_by")
+
+    @staticmethod
+    def formula(property_name: str, value_type: str = "string") -> _PropertyFilter:
+        """Filter on a formula property.
+
+        The ``value_type`` selects which sub-filter type to use.  Supported
+        values: ``"string"``, ``"number"``, ``"checkbox"``, ``"date"``.
+        The available conditions depend on the resolved type — e.g. for
+        ``"string"`` use ``contains``/``equals``/etc., for ``"number"`` use
+        numeric comparisons, for ``"checkbox"`` use ``equals``, for ``"date"``
+        use date conditions.
+
+        Args:
+            property_name: The name of the formula property column.
+            value_type: The result type of the formula expression.  Defaults
+                to ``"string"``.
+        """
+        return _PropertyFilter(property_name, f"formula.{value_type}")
+
+    @staticmethod
+    def rollup(
+        property_name: str,
+        aggregate: str = "any",
+        value_type: str = "number",
+    ) -> _PropertyFilter:
+        """Filter on a rollup property.
+
+        Args:
+            property_name: The name of the rollup property column.
+            aggregate: Which rollup aggregate to filter on.  One of
+                ``"any"`` (at least one item matches), ``"every"`` (all
+                items match), ``"none"`` (no items match), or ``"number"``
+                (the computed numeric result).  Defaults to ``"any"``.
+            value_type: The type of value within the aggregate.  For
+                ``"any"``/``"every"``/``"none"`` use the type of the
+                rolled-up property (e.g. ``"rich_text"``, ``"number"``,
+                ``"date"``).  For ``"number"`` use ``"number"``.
+                Defaults to ``"number"``.
+        """
+        return _PropertyFilter(property_name, f"rollup.{aggregate}.{value_type}")
+
+    @staticmethod
+    def verification(property_name: str) -> _PropertyFilter:
+        """Filter on a verification property (wiki pages,
+        Notion-Version: 2026-03-11).
+
+        Supported conditions: ``equals`` (pass ``"verified"`` or
+        ``"unverified"``), ``does_not_equal``, ``is_empty``,
+        ``is_not_empty``.
+
+        Args:
+            property_name: The name of the verification property column.
+        """
+        return _PropertyFilter(property_name, "verification")
+
     # ------------------------------------------------------------------
     # Timestamp filters (created_time / last_edited_time)
     # ------------------------------------------------------------------

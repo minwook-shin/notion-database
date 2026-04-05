@@ -481,6 +481,9 @@ class PropertySchema:
         relation_property_name: str,
         rollup_property_name: str,
         function: str,
+        *,
+        relation_property_id: Optional[str] = None,
+        rollup_property_id: Optional[str] = None,
     ) -> dict:
         """Rollup column.
 
@@ -497,17 +500,24 @@ class PropertySchema:
                 ``"percent_per_group"``, ``"percent_unchecked"``, ``"range"``,
                 ``"unchecked"``, ``"unique"``, ``"show_original"``,
                 ``"show_unique"``, or ``"sum"``.
+            relation_property_id: Optional ID of the relation column (alternative
+                to ``relation_property_name`` for ID-based lookup).
+            rollup_property_id: Optional ID of the property in the related
+                database (alternative to ``rollup_property_name``).
 
         Returns:
             Notion rollup property schema dict.
         """
-        return {
-            "rollup": {
-                "relation_property_name": relation_property_name,
-                "rollup_property_name": rollup_property_name,
-                "function": function,
-            }
+        config: dict = {
+            "relation_property_name": relation_property_name,
+            "rollup_property_name": rollup_property_name,
+            "function": function,
         }
+        if relation_property_id is not None:
+            config["relation_property_id"] = relation_property_id
+        if rollup_property_id is not None:
+            config["rollup_property_id"] = rollup_property_id
+        return {"rollup": config}
 
     @staticmethod
     def formula(expression: str) -> dict:
@@ -571,6 +581,34 @@ class PropertySchema:
         if prefix is not None:
             config["prefix"] = prefix
         return {"unique_id": config}
+
+    @staticmethod
+    def button() -> dict:
+        """Button column (triggers a configured automation when clicked).
+
+        Returns:
+            ``{"button": {}}``
+        """
+        return {"button": {}}
+
+    @staticmethod
+    def location() -> dict:
+        """Location column (stores a geographic location / address).
+
+        Returns:
+            ``{"location": {}}``
+        """
+        return {"location": {}}
+
+    @staticmethod
+    def last_visited_time() -> dict:
+        """Last visited time column (read-only; tracks when a page was last
+        opened by a user).
+
+        Returns:
+            ``{"last_visited_time": {}}``
+        """
+        return {"last_visited_time": {}}
 
     @staticmethod
     def verification() -> dict:
