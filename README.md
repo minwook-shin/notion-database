@@ -1,5 +1,10 @@
 [![Test Python Package](https://github.com/minwook-shin/notion-database/actions/workflows/python-publish.yml/badge.svg)](https://github.com/minwook-shin/notion-database/actions/workflows/python-publish.yml)
 
+> [!IMPORTANT]
+> **Upgrading from v1.4?**
+> Version 2.0 is a full redesign with a new API — `NotionClient` replaces the old `Page`, `Database`, and `Search` classes.
+> v1.4.x will continue to receive security fixes only. See the [migration table](#install) and [CHANGELOG](CHANGELOG.md) for details.
+
 # notion-database
 
 > Python client for the Notion API — easy to use, 1-to-1 API mapping, AI/MCP friendly
