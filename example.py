@@ -136,7 +136,15 @@ if parent_page_id is not None:
     data_source_id = ds_list[0]["id"] if ds_list else None
     log.debug("created database: %s  data_source: %s", database_id, data_source_id)
     pprint.pprint(db_created)
-    available_properties = set(ALL_PROPERTIES.keys())
+    # Determine which columns were actually created (2026-03-11 may put schema
+    # in data_source rather than the container object)
+    if ds_list:
+        available_properties = set((ds_list[0].get("properties") or {}).keys())
+    else:
+        available_properties = set((db_created.get("properties") or {}).keys())
+    available_properties.discard("title")  # title is always handled separately
+    available_properties.add("title")
+    log.debug("available columns after create: %s", sorted(available_properties))
 else:
     # Fallback: use existing database; only populate columns that exist
     pprint.pprint(fallback_db)
