@@ -192,13 +192,30 @@ else:
         (fallback_db.get("properties") or {}).keys()
     )
     log.debug("existing columns: %s", sorted(available_properties))
-    missing = set(ALL_PROPERTIES) - available_properties
+    missing = {k: v for k, v in ALL_PROPERTIES.items() if k not in available_properties}
     if missing:
-        log.warning(
-            "Using existing database — missing columns %s. "
-            "Share a PAGE with the integration to let the example create its own database.",
-            sorted(missing),
-        )
+        log.debug("attempting to add missing columns via PATCH: %s", sorted(missing))
+        try:
+            client.databases.update(database_id, properties=missing)
+            # Re-fetch to see which columns were actually added
+            refreshed = client.databases.retrieve(database_id)
+            ds_list2 = refreshed.get("data_sources") or []
+            if ds_list2:
+                refreshed_props = set((ds_list2[0].get("properties") or {}).keys())
+            else:
+                refreshed_props = set((refreshed.get("properties") or {}).keys())
+            available_properties = available_properties | refreshed_props
+            still_missing = set(missing) - available_properties
+            if still_missing:
+                log.warning(
+                    "Could not add columns %s to existing database. "
+                    "Share a PAGE with the integration to let the example create its own database.",
+                    sorted(still_missing),
+                )
+            else:
+                log.debug("all missing columns added successfully")
+        except Exception as e:
+            log.warning("PATCH to add columns failed (%s). Continuing with available columns.", e)
 
 # ──────────────────────────────────────────────
 # 3. Retrieve and update the database metadata
