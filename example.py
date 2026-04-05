@@ -360,7 +360,9 @@ except Exception as e:
 # 8. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
 log.debug("=== 8. Query database ===")
-query_id = database_id
+# data_source_id is the queryable object in 2026-03-11; fall back to
+# database_id for legacy databases that don't have a data_source.
+query_id = data_source_id or database_id
 
 # Simple filter — only non-trashed pages (skip if checkbox column not present)
 if "checkbox" in _ap:
