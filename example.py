@@ -293,22 +293,21 @@ pprint.pprint(page)
 # 6. Update the page
 # ──────────────────────────────────────────────
 log.debug("=== 6. Update page ===")
+update_properties: dict = {"title": PropertyValue.title("Updated Title")}
+if "description" in _ap: update_properties["description"] = PropertyValue.rich_text("Updated description")
+if "number"      in _ap: update_properties["number"]      = PropertyValue.number(2)
+if "checkbox"    in _ap: update_properties["checkbox"]    = PropertyValue.checkbox(False)
+if "date"        in _ap: update_properties["date"]        = PropertyValue.date(
+    "2024-01-01T00:00:00.000+09:00",
+    end="2024-01-31T00:00:00.000+09:00",
+)
+if "file"        in _ap: update_properties["file"]        = PropertyValue.files([
+    "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
+    "https://download.blender.org/peach/trailer/trailer_480p.mov",
+])
 client.pages.update(
     page_id,
-    properties={
-        "title":       PropertyValue.title("Updated Title"),
-        "description": PropertyValue.rich_text("Updated description"),
-        "number":      PropertyValue.number(2),
-        "checkbox":    PropertyValue.checkbox(False),
-        "date":        PropertyValue.date(
-                           "2024-01-01T00:00:00.000+09:00",
-                           end="2024-01-31T00:00:00.000+09:00",
-                       ),
-        "file":        PropertyValue.files([
-                           "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
-                           "https://download.blender.org/peach/trailer/trailer_480p.mov",
-                       ]),
-    },
+    properties=update_properties,
     icon=Icon.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
 )
@@ -355,41 +354,44 @@ except Exception as e:
 log.debug("=== 8. Query database ===")
 query_id = database_id
 
-# Simple filter — only non-trashed pages
-result = client.databases.query(
-    query_id,
-    filter=Filter.checkbox("checkbox").equals(False),
-    sorts=[Sort.by_property("title")],
-    in_trash=False,
-)
-pprint.pprint(result)
+# Simple filter — only non-trashed pages (skip if checkbox column not present)
+if "checkbox" in _ap:
+    result = client.databases.query(
+        query_id,
+        filter=Filter.checkbox("checkbox").equals(False),
+        sorts=[Sort.by_property("title")],
+        in_trash=False,
+    )
+    pprint.pprint(result)
 
 # OR compound filter
-result = client.databases.query(
-    query_id,
-    filter=Filter.or_([
-        Filter.checkbox("checkbox").equals(False),
-        Filter.number("number").greater_than_or_equal_to(2),
-    ]),
-)
-pprint.pprint(result)
+if "checkbox" in _ap and "number" in _ap:
+    result = client.databases.query(
+        query_id,
+        filter=Filter.or_([
+            Filter.checkbox("checkbox").equals(False),
+            Filter.number("number").greater_than_or_equal_to(2),
+        ]),
+    )
+    pprint.pprint(result)
 
 # Nested AND + OR filter
-result = client.databases.query(
-    query_id,
-    filter=Filter.and_([
-        Filter.text("title").is_not_empty(),
-        Filter.or_([
-            Filter.select("select").equals("test1"),
-            Filter.number("number").less_than(10),
+if "select" in _ap and "number" in _ap:
+    result = client.databases.query(
+        query_id,
+        filter=Filter.and_([
+            Filter.text("title").is_not_empty(),
+            Filter.or_([
+                Filter.select("select").equals("test1"),
+                Filter.number("number").less_than(10),
+            ]),
         ]),
-    ]),
-    sorts=[
-        Sort.descending("number"),
-        Sort.by_timestamp("last_edited_time", "descending"),
-    ],
-)
-pprint.pprint(result)
+        sorts=[
+            Sort.descending("number"),
+            Sort.by_timestamp("last_edited_time", "descending"),
+        ],
+    )
+    pprint.pprint(result)
 
 # Filter by result_type: only pages (excludes embedded data sources)
 result = client.databases.query(
