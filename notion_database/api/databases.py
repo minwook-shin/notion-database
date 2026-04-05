@@ -82,7 +82,16 @@ class DatabasesAPI:
             body["filter_properties"] = filter_properties
         if in_trash is not None:
             body["in_trash"] = in_trash
-        return self._http.post(f"/databases/{database_id}/query", body)
+        # In Notion API 2026-03-11 the data_source object may use a different
+        # query path.  Try /databases/{id}/query first; if the API rejects the
+        # URL fall back to /data_sources/{id}/query.
+        from notion_database.exceptions import NotionValidationError
+        try:
+            return self._http.post(f"/databases/{database_id}/query", body)
+        except NotionValidationError as exc:
+            if exc.code == "invalid_request_url":
+                return self._http.post(f"/data_sources/{database_id}/query", body)
+            raise
 
     def query_all(
         self,
