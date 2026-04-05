@@ -43,7 +43,7 @@ from notion_database.models.rich_text import RichText
 from notion_database.models.sorts import Sort
 
 NOTION_VERSION = "2026-03-11"
-__version__ = "2.0.dev1"
+__version__ = "2.0.0rc1"
 
 __all__ = [
     # Client

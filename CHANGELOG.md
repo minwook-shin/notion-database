@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.dev1 (2026-04-05)
+## 2.0.0rc1 (2026-04-05)
 
 Complete redesign of the package API.  All v1.x classes have been removed and
 replaced with a single `NotionClient` entry point backed by purpose-built
