@@ -274,5 +274,5 @@ class PagesAPI:
         """
         return self._http.patch(
             f"/pages/{page_id}/markdown",
-            {"type": "insert_content", "insert_content": {"new_str": markdown}},
+            {"type": "insert_content", "insert_content": {"content": markdown}},
         )
