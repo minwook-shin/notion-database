@@ -9,6 +9,20 @@
 
 > Python client for the Notion API — easy to use, 1-to-1 API mapping, AI/MCP friendly
 
+**Notion API version supported: `2026-03-11`**
+
+## What's new in 2.0
+
+| Feature | Description |
+|---|---|
+| `client.pages.retrieve_markdown()` | Retrieve a page as enhanced Markdown (`GET /pages/{id}/markdown`) |
+| `client.pages.update_markdown()` | Replace page content with Markdown (`POST /pages/{id}/markdown`) |
+| `client.pages.create(timezone=...)` | IANA timezone for template variables (`@now`, `@today`) |
+| `client.blocks.append_children(position=...)` | Insert blocks at `start`, `end`, or `after_block` |
+| `PropertySchema.verification()` | Wiki page verification column |
+| `PropertyValue.verification()` | Set wiki page verification state |
+| `BlockContent.tab()` / `tab_group()` | Tab layout blocks |
+
 ## Install
 
 ```bash
