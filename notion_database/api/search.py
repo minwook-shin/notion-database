@@ -87,11 +87,22 @@ class SearchAPI:
             start_cursor=start_cursor,
             page_size=page_size,
         )
+        results = response.get("results", [])
         if not include_archived:
-            response["results"] = [
-                r for r in response.get("results", [])
-                if not r.get("in_trash") and not r.get("archived")
-            ]
+            results = [r for r in results if not r.get("in_trash") and not r.get("archived")]
+        # In Notion-Version 2026-03-11 the search endpoint returns
+        # object:"data_source" wrappers whose own `id` is NOT the database ID.
+        # The real database ID lives in parent.database_id.  Normalise so that
+        # callers can always use result["id"] with GET /databases/{id}.
+        normalised = []
+        for r in results:
+            if r.get("object") == "data_source":
+                parent = r.get("parent", {})
+                if parent.get("type") == "database_id" and parent.get("database_id"):
+                    r = dict(r)
+                    r["id"] = parent["database_id"]
+            normalised.append(r)
+        response["results"] = normalised
         return response
 
     def search_pages(
