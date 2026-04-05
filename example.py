@@ -344,7 +344,12 @@ log.debug("=== 11. Users ===")
 me = client.users.me()
 log.debug("bot user: %s", me.get("name"))
 
-all_users = client.users.list_all()
-log.debug("workspace users: %d", len(all_users))
+# Listing all users requires the integration to have user-reading capability
+# enabled in the Notion workspace settings. Skip gracefully if not permitted.
+try:
+    all_users = client.users.list_all()
+    log.debug("workspace users: %d", len(all_users))
+except Exception as e:
+    log.warning("could not list users (insufficient permissions): %s", e)
 
 log.debug("=== Done ===")
