@@ -74,9 +74,38 @@ client.databases.update(
 )
 
 # ──────────────────────────────────────────────
-# 3. Create a page (all PropertyValue types + all BlockContent types)
+# 3. Ensure required columns exist in the database
 # ──────────────────────────────────────────────
-log.debug("=== 3. Create page ===")
+log.debug("=== 3. Ensure required columns ===")
+
+REQUIRED_PROPERTIES = {
+    "description":   PropertySchema.rich_text(),
+    "number":        PropertySchema.number(),
+    "number-float":  PropertySchema.number(),
+    "select":        PropertySchema.select(),
+    "multi_select":  PropertySchema.multi_select(),
+    "multi_select2": PropertySchema.multi_select(),
+    "checkbox":      PropertySchema.checkbox(),
+    "url":           PropertySchema.url(),
+    "email":         PropertySchema.email(),
+    "phone":         PropertySchema.phone_number(),
+    "date":          PropertySchema.date(),
+    "file":          PropertySchema.files(),
+}
+
+existing = set(db["properties"].keys())
+missing = {k: v for k, v in REQUIRED_PROPERTIES.items() if k not in existing}
+
+if missing:
+    log.debug("adding missing columns: %s", list(missing.keys()))
+    client.databases.update(database_id, properties=missing)
+else:
+    log.debug("all required columns already exist")
+
+# ──────────────────────────────────────────────
+# 4. Create a page (all PropertyValue types + all BlockContent types)
+# ──────────────────────────────────────────────
+log.debug("=== 4. Create page ===")
 page = client.pages.create(
     parent={"database_id": database_id},
     properties={
@@ -177,14 +206,14 @@ log.debug("created page: %s", page_id)
 # ──────────────────────────────────────────────
 # 4. Retrieve the page
 # ──────────────────────────────────────────────
-log.debug("=== 4. Retrieve page ===")
+log.debug("=== 5. Retrieve page ===")
 page = client.pages.retrieve(page_id)
 pprint.pprint(page)
 
 # ──────────────────────────────────────────────
 # 5. Update the page
 # ──────────────────────────────────────────────
-log.debug("=== 5. Update page ===")
+log.debug("=== 6. Update page ===")
 client.pages.update(
     page_id,
     properties={
@@ -208,7 +237,7 @@ client.pages.update(
 # ──────────────────────────────────────────────
 # 6. Retrieve block children
 # ──────────────────────────────────────────────
-log.debug("=== 6. Retrieve block children ===")
+log.debug("=== 7. Retrieve block children ===")
 blocks_response = client.blocks.retrieve_children(page_id, page_size=5)
 pprint.pprint(blocks_response)
 
@@ -228,7 +257,7 @@ client.blocks.append_children(page_id, children=[
 # ──────────────────────────────────────────────
 # 7. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
-log.debug("=== 7. Query database ===")
+log.debug("=== 8. Query database ===")
 
 # Simple filter
 result = client.databases.query(
@@ -272,7 +301,7 @@ log.debug("total pages: %d", len(all_pages))
 # ──────────────────────────────────────────────
 # 8. Archive and restore the page
 # ──────────────────────────────────────────────
-log.debug("=== 8. Archive & restore page ===")
+log.debug("=== 9. Archive & restore page ===")
 time.sleep(1)
 client.pages.archive(page_id)
 log.debug("page archived")
@@ -284,7 +313,7 @@ log.debug("page restored")
 # ──────────────────────────────────────────────
 # 9. Create a child database
 # ──────────────────────────────────────────────
-log.debug("=== 9. Create child database ===")
+log.debug("=== 10. Create child database ===")
 child_db = client.databases.create(
     parent={"type": "page_id", "page_id": page_id},
     title=[RichText.text("Child Database")],
@@ -311,7 +340,7 @@ log.debug("child database: %s", child_db["id"])
 # ──────────────────────────────────────────────
 # 10. Users
 # ──────────────────────────────────────────────
-log.debug("=== 10. Users ===")
+log.debug("=== 11. Users ===")
 me = client.users.me()
 log.debug("bot user: %s", me.get("name"))
 
