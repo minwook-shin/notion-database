@@ -5,10 +5,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="notion-database",
-    version="1.4.1",
+    version="2.0.dev1",
     author="minwook-shin",
     author_email="minwook0106@gmail.com",
-    description=" Python bindings for Notion Database API",
+    description="Python client for the Notion API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/minwook-shin/notion-database",
@@ -17,7 +17,6 @@ setuptools.setup(
     },
     install_requires=[
         "requests>=2.32.4,<3.0",
-        "urllib3<2.0"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -28,8 +27,8 @@ setuptools.setup(
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: 3.14',
-        'Development Status :: 5 - Production/Stable'
+        'Development Status :: 4 - Beta',
     ],
     packages=setuptools.find_packages(),
-    python_requires=">=3.8",
+    python_requires=">=3.10",
 )
