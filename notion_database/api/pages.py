@@ -235,19 +235,27 @@ class PagesAPI:
         self,
         page_id: str,
         markdown: str,
+        *,
+        allow_deleting_content: bool = False,
     ) -> Dict:
         """Replace a page's entire content with the provided Markdown.
 
         Args:
             page_id: The ID of the page whose content to replace.
             markdown: Enhanced Markdown string to write as the page body.
+            allow_deleting_content: Set to ``True`` to allow the operation to
+                delete child pages or databases that are not referenced in the
+                new Markdown content.
 
         Returns:
             Updated Notion page object.
 
         Reference: https://developers.notion.com/reference/update-page-markdown
         """
+        replace_content: Dict[str, Any] = {"new_str": markdown}
+        if allow_deleting_content:
+            replace_content["allow_deleting_content"] = True
         return self._http.patch(
             f"/pages/{page_id}/markdown",
-            {"type": "replace_content", "replace_content": {"new_str": markdown}},
+            {"type": "replace_content", "replace_content": replace_content},
         )

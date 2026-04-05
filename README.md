@@ -16,7 +16,7 @@
 | Feature | Description |
 |---|---|
 | `client.pages.retrieve_markdown()` | Retrieve a page as enhanced Markdown (`GET /pages/{id}/markdown`) |
-| `client.pages.update_markdown()` | Replace page content with Markdown (`POST /pages/{id}/markdown`) |
+| `client.pages.update_markdown()` | Replace page content with Markdown (`PATCH /pages/{id}/markdown`) |
 | `client.pages.create(timezone=...)` | IANA timezone for template variables (`@now`, `@today`) |
 | `client.blocks.append_children(position=...)` | Insert blocks at `start`, `end`, or `after_block` |
 | `client.databases.query(in_trash=...)` | Filter trashed / non-trashed rows |

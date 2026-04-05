@@ -522,6 +522,7 @@ log.debug("truncated: %s", md_response.get("truncated"))
 client.pages.update_markdown(
     page_id,
     markdown="# Updated via Markdown\n\nThis content was written using the Markdown API.",
+    allow_deleting_content=True,
 )
 log.debug("page content replaced via Markdown API")
 
