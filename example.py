@@ -360,9 +360,7 @@ except Exception as e:
 # 8. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
 log.debug("=== 8. Query database ===")
-# In Notion API 2026-03-11, rows live in the data_source; query via
-# data_source_id when available, fall back to the container database_id.
-query_id = data_source_id or database_id
+query_id = database_id
 
 # Simple filter — only non-trashed pages (skip if checkbox column not present)
 if "checkbox" in _ap:
@@ -403,12 +401,9 @@ if "select" in _ap and "number" in _ap:
     )
     pprint.pprint(result)
 
-# Filter by result_type: only pages (excludes embedded data sources)
-result = client.databases.query(
-    query_id,
-    result_type="page",
-)
-log.debug("page-type results: %d", len(result.get("results", [])))
+# Fetch all results with automatic pagination
+all_pages = client.databases.query_all(query_id, in_trash=False)
+log.debug("total pages: %d", len(all_pages))
 
 # Filters for people-type properties (created_by / last_edited_by)
 # Replace "user-id" with a real Notion user ID
@@ -424,10 +419,6 @@ log.debug("page-type results: %d", len(result.get("results", [])))
 # Filter.rollup("Tasks",     "any",    "number").greater_than(0)
 # Filter.rollup("Tags",      "every",  "rich_text").contains("urgent")
 # Filter.verification("Verified").equals("verified")
-
-# Fetch all results with automatic pagination
-all_pages = client.databases.query_all(query_id, in_trash=False)
-log.debug("total pages: %d", len(all_pages))
 
 # ──────────────────────────────────────────────
 # 9. Archive and restore the page

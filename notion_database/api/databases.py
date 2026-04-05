@@ -49,7 +49,6 @@ class DatabasesAPI:
         page_size: int = 100,
         filter_properties: Optional[List[str]] = None,
         in_trash: Optional[bool] = None,
-        result_type: Optional[str] = None,
     ) -> Dict:
         """Query a database and return a page of results.
 
@@ -65,8 +64,6 @@ class DatabasesAPI:
                 response page objects.  Reduces response payload size.
             in_trash: When ``True``, only return trashed pages.  When ``False``,
                 only return non-trashed pages.  Omit to return all.
-            result_type: Filter results by type.  One of ``"page"`` or
-                ``"data_source"`` (for databases embedded as data sources).
 
         Returns:
             Notion list object with ``results``, ``has_more``, and
@@ -85,8 +82,6 @@ class DatabasesAPI:
             body["filter_properties"] = filter_properties
         if in_trash is not None:
             body["in_trash"] = in_trash
-        if result_type is not None:
-            body["result_type"] = result_type
         return self._http.post(f"/databases/{database_id}/query", body)
 
     def query_all(
@@ -97,7 +92,6 @@ class DatabasesAPI:
         sorts: Optional[List[Dict]] = None,
         filter_properties: Optional[List[str]] = None,
         in_trash: Optional[bool] = None,
-        result_type: Optional[str] = None,
     ) -> List[Dict]:
         """Query a database and automatically paginate to return **all** pages.
 
@@ -107,7 +101,6 @@ class DatabasesAPI:
             sorts: A list of sort objects.
             filter_properties: Property names/IDs to include in page objects.
             in_trash: When ``True``, only return trashed pages.
-            result_type: Filter results by type (``"page"`` or ``"data_source"``).
 
         Returns:
             A flat list of all matching Notion page objects.
@@ -122,7 +115,6 @@ class DatabasesAPI:
                 start_cursor=cursor,
                 filter_properties=filter_properties,
                 in_trash=in_trash,
-                result_type=result_type,
             )
             pages.extend(response.get("results", []))
             if not response.get("has_more"):

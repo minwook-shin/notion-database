@@ -19,7 +19,7 @@
 | `client.pages.update_markdown()` | Replace page content with Markdown (`POST /pages/{id}/markdown`) |
 | `client.pages.create(timezone=...)` | IANA timezone for template variables (`@now`, `@today`) |
 | `client.blocks.append_children(position=...)` | Insert blocks at `start`, `end`, or `after_block` |
-| `client.databases.query(in_trash=..., result_type=...)` | Filter trashed rows or narrow by `"page"` / `"data_source"` |
+| `client.databases.query(in_trash=...)` | Filter trashed / non-trashed rows |
 | `client.databases.update(is_inline=..., in_trash=..., is_locked=...)` | Toggle inline layout, trash, and lock state |
 | `client.databases.create(initial_data_source=...)` | Pre-populate a database from a data source on creation |
 | `PropertySchema.button()` | Automation button column |
@@ -85,7 +85,6 @@ results = client.databases.query(
     filter=Filter.select("Status").equals("Active"),
     sorts=[Sort.descending("Score")],
     in_trash=False,        # exclude trashed rows
-    result_type="page",    # only return pages (not embedded data sources)
 )
 pages = results["results"]
 

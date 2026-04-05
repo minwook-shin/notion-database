@@ -78,10 +78,9 @@ with 2.0.  Migration notes:
   template variables (`@now`, `@today`)
 * **`blocks.append_children(position=...)`** – insert blocks at `"start"`,
   `"end"`, or `"after_block"` instead of always appending to the end
-* **`databases.query(in_trash=..., result_type=...)`** – filter trashed rows
-  and narrow results to `"page"` or `"data_source"` type
-* **`databases.query_all(in_trash=..., result_type=...)`** – same params
-  forwarded through the auto-pagination helper
+* **`databases.query(in_trash=...)`** – filter trashed / non-trashed rows
+* **`databases.query_all(in_trash=...)`** – same param forwarded through the
+  auto-pagination helper
 * **`databases.create(initial_data_source=...)`** – pre-populate a new
   database from a data source on creation
 * **`databases.update(is_inline=..., in_trash=..., is_locked=...)`** – toggle
