@@ -2,7 +2,7 @@
 Notion API Page
 """
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 from notion_database.children import Children
 from notion_database.properties import Properties
@@ -18,7 +18,7 @@ class Page:
     """
     Notion API Page class
     """
-    def __init__(self, integrations_token):
+    def __init__(self, integrations_token: str):
         """
         init
 
@@ -38,7 +38,7 @@ class Page:
         self.result = self.request.call_api_get(self.url + "/" + page_id)
 
     def retrieve_page_property(self, page_id: str, property_id: str,
-                               page_size: int = 100, start_cursor: str = None) -> dict:
+                               page_size: int = 100, start_cursor: Optional[str] = None) -> dict:
         """
         Retrieve a page property item.
 

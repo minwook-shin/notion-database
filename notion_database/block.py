@@ -1,7 +1,7 @@
 """
 Notion API Block
 """
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from notion_database.components.request import Request
 
@@ -23,7 +23,7 @@ class Block:  # pylint: disable=too-few-public-methods
         self.request: Request = Request(self.url, integrations_token=integrations_token)
 
     def retrieve_block(self, block_id: str, is_children: bool = False,
-                       page_size: int = 100, start_cursor: str = None):
+                       page_size: int = 100, start_cursor: Optional[str] = None):
         """
         Retrieve a block
 

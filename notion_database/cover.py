@@ -1,7 +1,7 @@
 """
 Notion API Cover
 """
-from typing import Dict
+from typing import Dict, Optional
 
 
 class Cover:
@@ -14,7 +14,7 @@ class Cover:
         """
         self.result: Dict = {}
 
-    def set_cover_image(self, text: str = None):
+    def set_cover_image(self, text: Optional[str] = None):
         """
         Page cover image
         only type of "external" is supported currently

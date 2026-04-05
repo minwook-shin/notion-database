@@ -36,7 +36,9 @@ class Request:
         :param body:
         :return:
         """
-        return requests.post(url, data=json.dumps(body), headers=self.header, timeout=60).json()
+        response = requests.post(url, data=json.dumps(body), headers=self.header, timeout=60)
+        response.raise_for_status()
+        return response.json()
 
     def call_api_get(self, url: str) -> Dict:
         """
@@ -45,7 +47,9 @@ class Request:
         :param url:
         :return:
         """
-        return requests.get(url, headers=self.header, timeout=60).json()
+        response = requests.get(url, headers=self.header, timeout=60)
+        response.raise_for_status()
+        return response.json()
 
     def call_api_patch(self, url: str, body: Dict) -> Dict:
         """
@@ -55,4 +59,6 @@ class Request:
         :param body:
         :return:
         """
-        return requests.patch(url, data=json.dumps(body), headers=self.header, timeout=60).json()
+        response = requests.patch(url, data=json.dumps(body), headers=self.header, timeout=60)
+        response.raise_for_status()
+        return response.json()

@@ -154,7 +154,7 @@ class Properties:  # pylint: disable=too-many-public-methods
             self.result.update({col: {"date": {}}})
         elif not start:
             start = datetime.now().isoformat()
-            self.result.update({col: {"date": {"start": start}}})
+            self.result.update({col: {"date": {"start": start, "end": end}}})
         elif not end:
             self.result.update({col: {"date": {"start": start}}})
         else:
