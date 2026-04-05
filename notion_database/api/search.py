@@ -65,10 +65,17 @@ class SearchAPI:
     ) -> Dict:
         """Search only databases.
 
-        Convenience wrapper around :meth:`search` with the database filter
-        pre-applied.  Trashed and archived databases are excluded by default
-        because the Notion search endpoint returns them even though they can no
-        longer be retrieved via ``GET /databases/{id}``.
+        Searches without a type filter and returns only results whose
+        ``object`` field equals ``"database"``.
+
+        The Notion API 2026-03-11 replaced the ``"database"`` search filter
+        value with ``"data_source"``, but ``"data_source"`` objects are a new
+        concept distinct from classic Notion databases (``object: "database"``)
+        and cannot be retrieved via ``GET /databases/{id}``.  Filtering
+        client-side on ``object == "database"`` is the reliable way to find
+        databases that are fully accessible through the Databases API.
+
+        Trashed and archived databases are excluded by default.
 
         Args:
             query: Text to search for.
@@ -79,20 +86,18 @@ class SearchAPI:
                 in the results.  Defaults to ``False``.
 
         Returns:
-            Notion list object containing only database objects.
+            Notion list object containing only ``object: "database"`` results.
         """
         response = self.search(
             query,
-            filter={"value": "data_source", "property": "object"},
             sort=sort,
             start_cursor=start_cursor,
             page_size=page_size,
         )
+        results = [r for r in response.get("results", []) if r.get("object") == "database"]
         if not include_archived:
-            response["results"] = [
-                r for r in response.get("results", [])
-                if not r.get("in_trash") and not r.get("archived")
-            ]
+            results = [r for r in results if not r.get("in_trash") and not r.get("archived")]
+        response["results"] = results
         return response
 
     def search_pages(
