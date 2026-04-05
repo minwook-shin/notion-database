@@ -43,122 +43,82 @@ NOTION_KEY = os.environ["NOTION_KEY"]
 client = NotionClient(NOTION_KEY)
 
 # ──────────────────────────────────────────────
-# 1. Search databases
 # ──────────────────────────────────────────────
-log.debug("=== 1. Search databases ===")
-search_result = client.search.search_databases(
-    sort={"direction": "ascending", "timestamp": "last_edited_time"},
+# 1. Find an accessible page and create a fresh example database
+# ──────────────────────────────────────────────
+log.debug("=== 1. Find parent page ===")
+page_result = client.search.search_pages(
+    sort={"direction": "descending", "timestamp": "last_edited_time"},
 )
-databases = search_result["results"]
-log.debug("found %d database(s)", len(databases))
-
-if not databases:
-    log.warning("No accessible databases found. Make sure the integration is shared with a page.")
-    raise SystemExit(0)
-
-# Search may return trashed / archived databases, or databases the integration
-# can discover but cannot access directly. Skip those and use the first live,
-# retrievable one.
-#
-# NOTE (Notion-Version 2026-03-11): search returns object:"data_source"
-# wrappers; search_databases() normalises result["id"] to the real database ID
-# but the wrapper still carries the property schema in result["properties"].
-# databases.retrieve() returns the database container which no longer contains
-# a "properties" key — properties now live on the data_source object.
-database_id = None
-db = None
-datasource = None  # data_source object from search (carries "properties")
-data_source_id = None  # original data_source ID (for schema/page/query ops)
-for candidate in databases:
-    if candidate.get("in_trash") or candidate.get("archived"):
-        log.debug("skipping trashed/archived database %s", candidate["id"])
-        continue
-    cid = candidate["id"]
-    try:
-        db = client.databases.retrieve(cid)
-        database_id = cid
-        datasource = candidate  # keep for property schema access
-        # In 2026-03-11 the database container lists its data_sources.
-        # Schema updates, page creation, and queries must target the
-        # data_source ID, not the parent database container ID.
-        ds_list = db.get("data_sources") or []
-        if ds_list:
-            data_source_id = ds_list[0]["id"]
-        log.debug("using database: %s  data_source: %s", database_id, data_source_id)
+parent_page_id = None
+for p in page_result["results"]:
+    if not p.get("in_trash") and not p.get("archived"):
+        parent_page_id = p["id"]
+        log.debug("using parent page: %s", parent_page_id)
         break
-    except Exception as e:
-        log.debug("skipping database %s (%s)", cid, e)
 
-if database_id is None:
+if parent_page_id is None:
     log.warning(
-        "No accessible database found among %d result(s). "
-        "Share at least one database directly with your integration.",
-        len(databases),
+        "No accessible page found. Share at least one page with your integration "
+        "so a fresh example database can be created inside it."
     )
     raise SystemExit(0)
 
 # ──────────────────────────────────────────────
-# 2. Retrieve and update a database
+# 2. Create a fresh example database with all required columns
 # ──────────────────────────────────────────────
-log.debug("=== 2. Retrieve & update database ===")
+log.debug("=== 2. Create example database ===")
+db_created = client.databases.create(
+    parent={"type": "page_id", "page_id": parent_page_id},
+    title=[RichText.text("notion-database 2.0 Example DB")],
+    is_inline=False,
+    properties={
+        "title":         PropertySchema.title(),
+        "description":   PropertySchema.rich_text(),
+        "number":        PropertySchema.number(),
+        "number-float":  PropertySchema.number(),
+        "select":        PropertySchema.select(),
+        "multi_select":  PropertySchema.multi_select(),
+        "multi_select2": PropertySchema.multi_select(),
+        "checkbox":      PropertySchema.checkbox(),
+        "url":           PropertySchema.url(),
+        "email":         PropertySchema.email(),
+        "phone":         PropertySchema.phone_number(),
+        "date":          PropertySchema.date(),
+        "file":          PropertySchema.files(),
+    },
+    icon=Icon.emoji("📚"),
+)
+database_id = db_created["id"]
+# In 2026-03-11 the created database has data_sources; use the first one's ID
+# for operations that target the actual data (rows / schema).
+ds_list = db_created.get("data_sources") or []
+data_source_id = ds_list[0]["id"] if ds_list else None
+log.debug("created database: %s  data_source: %s", database_id, data_source_id)
+pprint.pprint(db_created)
+
+# ──────────────────────────────────────────────
+# 3. Retrieve and update the database metadata
+# ──────────────────────────────────────────────
+log.debug("=== 3. Retrieve & update database ===")
+db = client.databases.retrieve(database_id)
 pprint.pprint(db)
 
-# Update title, icon, cover, and layout options
 client.databases.update(
     database_id,
-    title=[RichText.text("Updated DB")],
+    title=[RichText.text("Updated Example DB")],
     icon=Icon.emoji("📚"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
-    is_inline=False,   # show as full-page (not inline on parent page)
-    is_locked=False,   # ensure the database is editable
+    is_inline=False,
+    is_locked=False,
 )
-
-# ──────────────────────────────────────────────
-# 3. Ensure required columns exist in the database
-# ──────────────────────────────────────────────
-log.debug("=== 3. Ensure required columns ===")
-
-REQUIRED_PROPERTIES = {
-    "description":   PropertySchema.rich_text(),
-    "number":        PropertySchema.number(),
-    "number-float":  PropertySchema.number(),
-    "select":        PropertySchema.select(),
-    "multi_select":  PropertySchema.multi_select(),
-    "multi_select2": PropertySchema.multi_select(),
-    "checkbox":      PropertySchema.checkbox(),
-    "url":           PropertySchema.url(),
-    "email":         PropertySchema.email(),
-    "phone":         PropertySchema.phone_number(),
-    "date":          PropertySchema.date(),
-    "file":          PropertySchema.files(),
-}
-
-# In 2026-03-11 the database container has no "properties"; use the
-# data_source object (from search) which still carries the schema.
-ds_properties = (datasource or {}).get("properties") or db.get("properties") or {}
-existing = set(ds_properties.keys())
-missing = {k: v for k, v in REQUIRED_PROPERTIES.items() if k not in existing}
-
-if missing:
-    log.debug("adding missing columns: %s", list(missing.keys()))
-    # In 2026-03-11 only PATCH /databases/{database_id} (container) returns
-    # 200; PATCH on the data_source_id returns 404.  Use the container ID for
-    # schema updates and verify what the response contains.
-    updated = client.databases.update(database_id, properties=missing)
-    log.debug("update response object=%r id=%r has_props=%r",
-              updated.get("object"), updated.get("id"),
-              list((updated.get("properties") or {}).keys()) or "none")
-else:
-    log.debug("all required columns already exist")
 
 # ──────────────────────────────────────────────
 # 4. Create a page (all PropertyValue types + all BlockContent types)
 # ──────────────────────────────────────────────
 log.debug("=== 4. Create page ===")
-# In 2026-03-11 pages (rows) are created inside the data_source, not the
-# database container.  Fall back to database_id for older API versions.
 page = client.pages.create(
-    parent={"database_id": data_source_id or database_id},
+    parent={"database_id": database_id},
     properties={
         "title":         PropertyValue.title([
                              RichText.text("Hello, "),
@@ -325,8 +285,7 @@ except Exception as e:
 # 8. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
 log.debug("=== 8. Query database ===")
-# In 2026-03-11 queries target the data_source, not the database container.
-query_id = data_source_id or database_id
+query_id = database_id
 
 # Simple filter — only non-trashed pages
 result = client.databases.query(
