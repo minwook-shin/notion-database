@@ -1,281 +1,398 @@
-Python Notion Database
-======================
+notion-database
+===============
 
-https://github.com/minwook-shin/notion-database
+`GitHub <https://github.com/minwook-shin/notion-database>`_ |
+`PyPI <https://pypi.org/project/notion-database/>`_ |
+`Issue Tracker <https://github.com/minwook-shin/notion-database/issues>`_
 
-   Notion API Database Python Implementation
+A Python client for the Notion API.
+Start with a single ``NotionClient`` and use the builder classes to compose requests.
 
-created only by database from the official Notion API.
-
-
-Installing / Getting started
-----------------------------
+Installation
+------------
 
 .. code:: shell
 
    pip install notion-database
 
-List Database
-~~~~~~~~~~~~~
+Getting Started
+---------------
+
+Create a Notion Internal Integration and copy the token.
+
+.. code:: shell
+
+   export NOTION_KEY=secret_xxx
 
 .. code:: python
 
-    S = Search(integrations_token=NOTION_KEY)
-    S.search_database(query="",
-                      sort={"direction": Direction.ascending,
-                            "timestamp": Timestamp.last_edited_time})
+   from notion_database import NotionClient
 
-Retrieve Database
-~~~~~~~~~~~~~~~~~
+   client = NotionClient("secret_xxx")
 
-.. code:: python
+All resources are accessed through ``client.databases``, ``client.pages``,
+``client.blocks``, ``client.search``, ``client.users``, and ``client.comments``.
 
-   from notion_database.database import Database
+----
 
-   D = Database(integrations_token=NOTION_KEY)
-   D.retrieve_database(database_id=database_id)
+Databases
+---------
 
-Properties
-~~~~~~~~~~
-
--  For Database
-
-.. code:: python
-
-   from notion_database.properties import Properties
-
-   PROPERTY = Properties()
-   PROPERTY.set_title("title")
-   PROPERTY.set_rich_text("description")
-   PROPERTY.set_number("number")
-   PROPERTY.set_select("select")
-   PROPERTY.set_multi_select("multi_select")
-   PROPERTY.set_checkbox("checkbox")
-   PROPERTY.set_url("url")
-   PROPERTY.set_email("email")
-   PROPERTY.set_phone_number("phone")
-   PROPERTY.set_date("date")
-   PROPERTY.set_files("file")
-
--  For Page
-
-.. code:: python
-
-   from notion_database.properties import Properties
-
-   PROPERTY = Properties()
-   PROPERTY.set_title("title", "title")
-   PROPERTY.set_rich_text("description", "notion-database")
-   PROPERTY.set_number("number", 1)
-   PROPERTY.set_select("select", "test1")
-   PROPERTY.set_multi_select("multi_select", ["test1", "test2"])
-   PROPERTY.set_checkbox("checkbox", True)
-   PROPERTY.set_url("url", "www.google.com")
-   PROPERTY.set_email("email", "test@test.com")
-   PROPERTY.set_phone_number("phone", "010-0000-0000")
-   PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900", "2023-01-10T01:01:01.000+0900")
-   PROPERTY.set_files("file", files_list=["https://github.githubassets.com/images/modules/logos_page/Octocat.png"])
-
-Create Page
-~~~~~~~~~~~
-
-.. code:: python
-
-   from notion_database.page import Page
-
-   P = Page(integrations_token=NOTION_KEY)
-   P.create_page(database_id=database_id, properties=PROPERTY, children=children)
-   page_id = P.result["id"]
-
-Retrieve Page
-~~~~~~~~~~~~~
-
-.. code:: python
-
-   from notion_database.page import Page
-
-   P = Page(integrations_token=NOTION_KEY)
-   P.retrieve_page(page_id=page_id)
-
-Update Page
-~~~~~~~~~~~
-
-.. code:: python
-
-   from notion_database.page import Page
-
-   P = Page(integrations_token=NOTION_KEY)
-   P.update_page(page_id=page_id, properties=PROPERTY)
-
-Clear Properties
+Search Databases
 ~~~~~~~~~~~~~~~~
 
 .. code:: python
 
-   from notion_database.properties import Properties
+   result = client.search.search_databases(
+       sort={"direction": "ascending", "timestamp": "last_edited_time"},
+   )
+   for db in result["results"]:
+       print(db["id"])
 
-   PROPERTY = Properties()
-   PROPERTY.clear()
-
-Archive Page
-~~~~~~~~~~~~
+Retrieve a Database
+~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
 
-   from notion_database.page import Page
+   db = client.databases.retrieve("database-id")
 
-   P = Page(integrations_token=NOTION_KEY)
-   P.archive_page(page_id=page_id, archived=True)
+Create a Database
+~~~~~~~~~~~~~~~~~
 
-Create database
+.. code:: python
+
+   from notion_database import NotionClient, PropertySchema, RichText, Icon
+
+   client = NotionClient("secret_xxx")
+
+   db = client.databases.create(
+       parent={"type": "page_id", "page_id": "page-id"},
+       title=[RichText.text("My Database")],
+       properties={
+           "Name":   PropertySchema.title(),
+           "Status": PropertySchema.select([
+                         {"name": "In Progress", "color": "blue"},
+                         {"name": "Done",        "color": "green"},
+                     ]),
+           "Score":  PropertySchema.number("number"),
+           "Due":    PropertySchema.date(),
+           "Done":   PropertySchema.checkbox(),
+       },
+       icon=Icon.emoji("📋"),
+   )
+
+Update a Database
+~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+   from notion_database import RichText, Icon
+
+   client.databases.update(
+       "database-id",
+       title=[RichText.text("Renamed Database")],
+       icon=Icon.emoji("🗂️"),
+   )
+
+----
+
+Pages
+-----
+
+Create a Page
+~~~~~~~~~~~~~
+
+The keys in ``properties`` must match the column names in the parent database.
+
+.. code:: python
+
+   from notion_database import NotionClient, PropertyValue, BlockContent, Icon, Cover
+
+   client = NotionClient("secret_xxx")
+
+   page = client.pages.create(
+       parent={"database_id": "database-id"},
+       properties={
+           "Name":   PropertyValue.title("New Page"),
+           "Status": PropertyValue.select("In Progress"),
+           "Score":  PropertyValue.number(100),
+           "Due":    PropertyValue.date("2024-12-31"),
+           "Done":   PropertyValue.checkbox(False),
+       },
+       icon=Icon.emoji("🚀"),
+       cover=Cover.external("https://example.com/cover.jpg"),
+       children=[
+           BlockContent.heading_1("Introduction"),
+           BlockContent.paragraph("This page was created with notion-database 2.0."),
+       ],
+   )
+   page_id = page["id"]
+
+Retrieve a Page
 ~~~~~~~~~~~~~~~
 
 .. code:: python
 
-   from notion_database.database import Database
+   page = client.pages.retrieve("page-id")
 
-   D = Database(integrations_token=NOTION_KEY)
-   D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY)
-
-Finding all pages in a database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Update a Page
+~~~~~~~~~~~~~
 
 .. code:: python
 
-   from notion_database.database import Database
-   import pprint
+   from notion_database import PropertyValue
 
-   D = Database(integrations_token=NOTION_KEY)
-   D.find_all_page(database_id=database_id)
-   pprint.pprint(D.result)
+   client.pages.update(
+       "page-id",
+       properties={
+           "Status": PropertyValue.select("Done"),
+           "Done":   PropertyValue.checkbox(True),
+       },
+   )
 
-   if D.result["has_more"]:
-      D.find_all_page(database_id=database_id, start_cursor=D.result["next_cursor"])
-
-Get Properties
-~~~~~~~~~~~~~~
-
-.. code:: python
-
-   from notion_database.database import Database
-
-   D = Database(integrations_token=NOTION_KEY)
-   D.retrieve_database(database_id, get_properties=True)
-   properties_list = D.properties_list
-
-Remove Properties / Update Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Archive / Restore a Page
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
 
-   from notion_database.database import Database
+   client.pages.archive("page-id")                     # archive
+   client.pages.archive("page-id", archived=False)     # restore
 
-   D = Database(integrations_token=NOTION_KEY)
-   D.update_database(database_id=database_id, title="DB", add_properties=PROPERTY)
+----
 
-or
+Property Values
+---------------
 
-.. code:: python
-
-   from notion_database.database import Database
-
-   D = Database(integrations_token=NOTION_KEY)
-   D.update_database(database_id=database_id, title="DB", remove_properties=D.properties_list)
-
-or
+Use ``PropertyValue`` to build property values when creating or updating pages.
 
 .. code:: python
 
-   from notion_database.database import Database
+   from notion_database import PropertyValue
 
-   D = Database(integrations_token=NOTION_KEY)
-   D.update_database(database_id=database_id, title="DB", remove_properties=D.properties_list, add_properties=PROPERTY)
+   {
+       "Name":        PropertyValue.title("Page title"),
+       "Description": PropertyValue.rich_text("Some text"),
+       "Count":       PropertyValue.number(42),
+       "Category":    PropertyValue.select("Option A"),
+       "Tags":        PropertyValue.multi_select(["tag1", "tag2"]),
+       "Status":      PropertyValue.status("In Progress"),
+       "Date":        PropertyValue.date("2024-01-01"),
+       "DateRange":   PropertyValue.date("2024-01-01", end="2024-01-31"),
+       "Active":      PropertyValue.checkbox(True),
+       "Website":     PropertyValue.url("https://example.com"),
+       "Email":       PropertyValue.email("hello@example.com"),
+       "Phone":       PropertyValue.phone_number("+1-555-0100"),
+       "Attachment":  PropertyValue.files(["https://example.com/file.pdf"]),
+       "Related":     PropertyValue.relation(["other-page-id"]),
+       "Owner":       PropertyValue.people(["user-id"]),
+   }
 
-Children block
-~~~~~~~~~~~~~~
-
-.. code:: python
-
-   from notion_database.children import Children
-   children = Children()
-
-   children.set_paragraph("set_paragraph")
-   children.set_paragraph("set_paragraph", color=clr.BLUE)
-
-   children.set_heading_1("set_heading_1")
-   children.set_heading_2("set_heading_2")
-   children.set_heading_3("set_heading_3")
-   children.set_heading_1("set_heading_1", color=clr.BLUE)
-   children.set_heading_2("set_heading_2", color=clr.BLUE_BACKGROUND)
-   children.set_heading_3("set_heading_3", color=clr.GREEN)
-
-   children.set_callout("set_callout")
-   children.set_callout("set_callout",color=clr.RED_BACKGROUND)
-
-   children.set_quote("set_quote")
-   children.set_quote("set_quote",color=clr.RED)
-
-   children.set_bulleted_list_item("set_bulleted_list_item")
-   children.set_bulleted_list_item("set_bulleted_list_item", color=clr.BROWN)
-
-   children.set_numbered_list_item("first set_numbered_list_item")
-   children.set_numbered_list_item("second set_numbered_list_item", color=clr.BROWN)
-
-   children.set_to_do("set_to_do", checked=True)
-   children.set_to_do("set_to_do", checked=False, color=clr.RED)
-
-   children.set_toggle("set_toggle", children_text="WOW!", color=clr.BLUE)
-
-   children.set_code("set_code")
-   children.set_code("const a = 1", lang="javascript")
-   children.set_code("print(\"hello world!\")", lang='python')
-
-   children.set_embed("https://www.google.com")
-
-   children.set_external_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-   children.set_external_video("http://download.blender.org/peach/trailer/trailer_480p.mov")
-   children.set_external_file("https://github.com/microsoft/ML-For-Beginners/raw/main/pdf/readme.pdf")
-   children.set_external_pdf("https://github.com/microsoft/ML-For-Beginners/blob/main/pdf/readme.pdf")
-
-   children.set_bookmark("https://www.google.com")
-
-   children.set_equation("e=mc^2")
-
-   children.set_divider()
-   children.set_table_of_contents()
-   children.set_breadcrumb()
-
-   # P.create_page(database_id=database_id, properties=PROPERTY, children=children)
-
-Cover & Icon block
-~~~~~~~~~~~~~~~~~~
+Use ``PropertySchema`` to define database column schemas when creating or updating databases.
 
 .. code:: python
 
-    cover = Cover()
-    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    icon = Icon()
-    icon.set_icon_emoji("📚")
+   from notion_database import PropertySchema
 
-Building / Developing
----------------------
+   {
+       "Name":     PropertySchema.title(),
+       "Notes":    PropertySchema.rich_text(),
+       "Score":    PropertySchema.number("number"),
+       "Category": PropertySchema.select([{"name": "A"}, {"name": "B"}]),
+       "Tags":     PropertySchema.multi_select(),
+       "Due":      PropertySchema.date(),
+       "Done":     PropertySchema.checkbox(),
+       "Website":  PropertySchema.url(),
+       "Formula":  PropertySchema.formula("prop('Score') * 2"),
+       "Related":  PropertySchema.relation("other-database-id"),
+   }
 
-.. code:: shell
+----
 
-   python setup.py install
+Block Content
+-------------
+
+Use ``BlockContent`` to build page content blocks.
+
+.. code:: python
+
+   from notion_database import NotionClient, BlockContent, RichText
+   from notion_database.const import BLUE, RED_BACKGROUND
+
+   client = NotionClient("secret_xxx")
+
+   client.blocks.append_children("page-id", children=[
+       BlockContent.heading_1("Heading 1"),
+       BlockContent.heading_2("Heading 2"),
+       BlockContent.heading_3("Heading 3"),
+
+       BlockContent.paragraph("Plain paragraph"),
+       BlockContent.paragraph("Colored paragraph", color=BLUE),
+       BlockContent.paragraph([
+           RichText.text("Bold", bold=True),
+           RichText.text(", "),
+           RichText.text("italic", italic=True),
+           RichText.text(", "),
+           RichText.text("link", link="https://example.com"),
+       ]),
+
+       BlockContent.callout("Note", color=RED_BACKGROUND),
+       BlockContent.quote("A famous quote."),
+
+       BlockContent.bulleted_list_item("Bullet item"),
+       BlockContent.numbered_list_item("Numbered item"),
+       BlockContent.to_do("Task", checked=False),
+       BlockContent.toggle("Toggle header", children=[
+           BlockContent.paragraph("Hidden content"),
+       ]),
+
+       BlockContent.code('print("hello")', language="python"),
+       BlockContent.equation("E = mc^2"),
+
+       BlockContent.image("https://example.com/image.png", caption="Figure 1"),
+       BlockContent.video("https://example.com/video.mp4"),
+       BlockContent.embed("https://www.youtube.com/watch?v=xxx"),
+       BlockContent.bookmark("https://example.com"),
+
+       BlockContent.divider(),
+       BlockContent.table_of_contents(),
+
+       BlockContent.column_list([
+           [BlockContent.paragraph("Left column")],
+           [BlockContent.paragraph("Right column")],
+       ]),
+   ])
+
+Retrieve Block Children
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+   # Single page of results
+   response = client.blocks.retrieve_children("page-id")
+   blocks = response["results"]
+
+   # Fetch all children automatically (auto-pagination)
+   all_blocks = client.blocks.retrieve_all_children("page-id")
+
+----
+
+Querying (Filters & Sorts)
+--------------------------
+
+Use ``Filter`` and ``Sort`` to query a database.
+
+.. code:: python
+
+   from notion_database import NotionClient, Filter, Sort
+
+   client = NotionClient("secret_xxx")
+
+   # Simple filter
+   result = client.databases.query(
+       "database-id",
+       filter=Filter.select("Status").equals("In Progress"),
+       sorts=[Sort.descending("Due")],
+   )
+
+   # OR compound filter
+   result = client.databases.query(
+       "database-id",
+       filter=Filter.or_([
+           Filter.checkbox("Done").equals(False),
+           Filter.number("Score").greater_than(90),
+       ]),
+   )
+
+   # Nested AND + OR filter
+   result = client.databases.query(
+       "database-id",
+       filter=Filter.and_([
+           Filter.text("Name").is_not_empty(),
+           Filter.or_([
+               Filter.select("Status").equals("In Progress"),
+               Filter.date("Due").next_week(),
+           ]),
+       ]),
+   )
+
+   # Fetch all results with automatic pagination
+   all_pages = client.databases.query_all("database-id")
+
+Filter Conditions Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+   Filter.text("col").equals("value")
+   Filter.text("col").contains("value")
+   Filter.text("col").starts_with("value")
+   Filter.text("col").is_empty()
+   Filter.text("col").is_not_empty()
+
+   Filter.number("col").greater_than(0)
+   Filter.number("col").less_than_or_equal_to(100)
+
+   Filter.checkbox("col").equals(True)
+
+   Filter.select("col").equals("Option")
+   Filter.multi_select("col").contains("tag")
+
+   Filter.date("col").before("2025-01-01")
+   Filter.date("col").past_week()
+   Filter.date("col").next_month()
+   Filter.date("col").this_week()
+
+   Filter.created_time().after("2024-01-01")
+   Filter.last_edited_time().past_week()
+
+   # Compound
+   Filter.and_([...])
+   Filter.or_([...])
+
+----
+
+Error Handling
+--------------
+
+.. code:: python
+
+   from notion_database import (
+       NotionClient,
+       NotionNotFoundError,
+       NotionRateLimitError,
+       NotionAPIError,
+   )
+   import time
+
+   client = NotionClient("secret_xxx")
+
+   try:
+       page = client.pages.retrieve("page-id")
+   except NotionNotFoundError:
+       print("Page not found.")
+   except NotionRateLimitError:
+       time.sleep(1)
+       page = client.pages.retrieve("page-id")
+   except NotionAPIError as e:
+       print(f"[{e.status_code}] {e.code}: {e.message}")
+
+----
 
 Contributing
 ------------
 
-If you’d like to contribute, please fork the repository and use a
-feature branch. Pull requests are warmly welcome.
+Bug reports and feature requests are welcome via
+`GitHub Issues <https://github.com/minwook-shin/notion-database/issues>`_.
+To contribute code, fork the repository and open a Pull Request.
 
 Links
 -----
 
--  Notion API : https://developers.notion.com
+- Notion API: https://developers.notion.com
+- GitHub: https://github.com/minwook-shin/notion-database
+- PyPI: https://pypi.org/project/notion-database/
 
-Licensing
----------
+License
+-------
 
-The code in this project is licensed under GPL license.
+LGPLv3

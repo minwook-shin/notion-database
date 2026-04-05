@@ -1,5 +1,113 @@
 # Changelog
 
+## 2.0.dev1 (2026-04-05)
+
+Complete redesign of the package API.  All v1.x classes have been removed and
+replaced with a single `NotionClient` entry point backed by purpose-built
+resource sub-clients.
+
+### Breaking Changes
+
+The entire public API has been redesigned.  v1.x code is **not compatible**
+with 2.0.  Migration notes:
+
+| v1.x | v2.0 |
+|---|---|
+| `Page(token)` | `NotionClient(token).pages` |
+| `Database(token)` | `NotionClient(token).databases` |
+| `Block(token)` | `NotionClient(token).blocks` |
+| `Search(token)` | `NotionClient(token).search` |
+| `Properties().set_title(col, text)` | `{col: PropertyValue.title(text)}` |
+| `Children().set_paragraph(text)` | `BlockContent.paragraph(text)` |
+| `Cover().set_cover_image(url)` | `Cover.external(url)` |
+| `Icon().set_icon_emoji(emoji)` | `Icon.emoji(emoji)` |
+| `const.query.Direction` | `Sort.by_property(..., "ascending" \| "descending")` |
+
+### New Features
+
+* **`NotionClient`** – single entry point; all resources accessed via
+  `client.databases`, `client.pages`, `client.blocks`, `client.search`,
+  `client.users`, `client.comments`
+* **1-to-1 Notion API mapping** – every method name and parameter matches the
+  Notion REST API exactly, making the official docs directly usable
+* **`PropertyValue`** – static factory methods for page property values
+  (`title`, `rich_text`, `number`, `select`, `multi_select`, `status`,
+  `date`, `checkbox`, `url`, `email`, `phone_number`, `people`, `files`,
+  `relation`, `unique_id`)
+* **`PropertySchema`** – static factory methods for database column schemas
+  (`title`, `rich_text`, `number`, `select`, `multi_select`, `status`,
+  `date`, `checkbox`, `url`, `email`, `phone_number`, `people`, `files`,
+  `relation`, `rollup`, `formula`, `created_time`, `created_by`,
+  `last_edited_time`, `last_edited_by`, `unique_id`)
+* **`BlockContent`** – static factory methods for all supported block types
+  (`paragraph`, `heading_1/2/3`, `callout`, `quote`, `bulleted_list_item`,
+  `numbered_list_item`, `to_do`, `toggle`, `code`, `image`, `video`, `file`,
+  `pdf`, `embed`, `bookmark`, `divider`, `table_of_contents`, `breadcrumb`,
+  `equation`, `column_list`)
+* **`RichText`** – rich-text element builder (`text`, `mention_page`,
+  `mention_database`, `mention_user`, `mention_date`, `equation`)
+* **`Filter`** – fluent filter builder for database queries covering all
+  property types (`text`, `title`, `number`, `checkbox`, `select`,
+  `multi_select`, `status`, `date`, `people`, `files`, `relation`,
+  `url`, `email`, `phone_number`, `unique_id`) plus compound `and_`/`or_`
+  and timestamp filters (`created_time`, `last_edited_time`)
+* **`Sort`** – sort builder (`by_property`, `by_timestamp`, `ascending`,
+  `descending`)
+* **`Icon` / `Cover`** – icon and cover object builders
+* **Auto-pagination helpers** – `databases.query_all()`,
+  `blocks.retrieve_all_children()`, `users.list_all()`, `search.search_all()`
+* **Typed exceptions** – `NotionAPIError` with subclasses
+  `NotionValidationError`, `NotionUnauthorizedError`, `NotionForbiddenError`,
+  `NotionNotFoundError`, `NotionConflictError`, `NotionRateLimitError`,
+  `NotionInternalError`
+* **Users API** – `users.retrieve()`, `users.list()`, `users.list_all()`,
+  `users.me()`
+* **Comments API** – `comments.retrieve()`, `comments.create()`
+* Dropped `urllib3<2.0` constraint
+* Minimum Python version raised to 3.10
+
+## 1.4.1 (2026-04-05)
+
+### Bug Fixes
+
+* Fix `Search.search_pages()` pagination — when `start_cursor` was provided, a second
+  unconditional API call immediately overwrote the result, making pagination effectively broken
+* Fix `Properties.set_date()` silently dropping `end` when `start` is not provided — the `end`
+  date is now correctly included alongside the auto-generated `start` (current datetime)
+
+### Improvements
+
+* Add `response.raise_for_status()` to all HTTP methods in `Request`
+  (`call_api_post`, `call_api_get`, `call_api_patch`) so HTTP 4xx/5xx errors
+  raise an exception immediately instead of silently returning an error JSON object
+
+### Code Quality
+
+* Add `Optional[str]` to all parameters that accept `None` as a default value
+  (`start_cursor`, `text`, `url`) across `Block`, `Database`, `Page`, `Search`,
+  `Icon`, and `Cover`
+* Fix PEP 8 spacing in `Database`: `page_size:int =100` → `page_size: int = 100`,
+  `title:str` → `title: str`
+* Add missing `: str` type annotation to `Page.__init__` `integrations_token` parameter
+
+## 1.4.0 (2026-04-04)
+
+### Features
+
+* Add relation property support — finally resolving [#9](https://github.com/minwook-shin/notion-database/issues/9), open since Nov 21, 2022, with the help of vibe coding!
+  * Add `Properties.set_relation()` to set relation values (list of page IDs) or define relation schema for database columns
+* Add `Page.retrieve_page_property()` to fetch full property values via `/pages/{page_id}/properties/{property_id}` endpoint
+  * Required to read relation data that Notion API truncates in query results
+
+### Dependency
+
+* Update requests library to 2.33.1
+
+### Python Version Support
+
+* Drop Python 3.8, 3.9 support
+* Add Python 3.13, 3.14 support
+
 ## 1.3.0 (2025-06-28)
 
 ### Features

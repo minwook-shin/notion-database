@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "notion-database"
+version = "2.0.dev1"
+description = "Python client for the Notion API"
+readme = "README.md"
+license = { text = "LGPLv3" }
+authors = [{ name = "minwook-shin", email = "minwook0106@gmail.com" }]
+requires-python = ">=3.10"
+dependencies = ["requests>=2.33.1,<3.0"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Development Status :: 4 - Beta",
+]
+
+[project.urls]
+Homepage = "https://github.com/minwook-shin/notion-database"
+"Bug Tracker" = "https://github.com/minwook-shin/notion-database/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["notion_database*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.pylint.main]
+recursive = true
+
+[tool.pylint."messages control"]
+disable = ["C0114", "C0115", "C0116"]

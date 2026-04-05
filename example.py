@@ -1,212 +1,321 @@
+"""
+notion-database 2.0 — end-to-end example
+
+Set the NOTION_KEY environment variable to your Notion Internal Integration
+token before running:
+
+    export NOTION_KEY=secret_xxx
+    python example.py
+
+Alternatively, create a .env file in the project root and python-dotenv will
+load it automatically.
+"""
 import logging
 import os
 import pprint
 import time
 
-import notion_database.const.color as clr
-from notion_database.children import Children
-from notion_database.cover import Cover
-from notion_database.database import Database
-from notion_database.icon import Icon
-from notion_database.page import Page
-from notion_database.properties import Properties
-from notion_database.const.query import Direction, Timestamp
-from notion_database.search import Search
-
 try:
     from dotenv import load_dotenv
-
     load_dotenv()
 except ModuleNotFoundError:
     pass
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from notion_database import (
+    NotionClient,
+    PropertyValue,
+    PropertySchema,
+    BlockContent,
+    RichText,
+    Filter,
+    Sort,
+    Icon,
+    Cover,
+)
+from notion_database.const import (
+    BLUE, BLUE_BACKGROUND, BROWN, GREEN, RED, RED_BACKGROUND,
+)
 
-NOTION_KEY = os.getenv('NOTION_KEY')
+logging.basicConfig(level=logging.DEBUG, format="%(levelname)s %(message)s")
+log = logging.getLogger(__name__)
 
-# List Database
-logger.debug("List Database")
-S = Search(integrations_token=NOTION_KEY)
-S.search_database(query="", sort={"direction": Direction.ascending, "timestamp": Timestamp.last_edited_time})
+NOTION_KEY = os.environ["NOTION_KEY"]
+client = NotionClient(NOTION_KEY)
 
-# List Database API is deprecated.
-# D = Database(integrations_token=NOTION_KEY)
-# D.list_databases(page_size=100)
+# ──────────────────────────────────────────────
+# 1. Search databases
+# ──────────────────────────────────────────────
+log.debug("=== 1. Search databases ===")
+search_result = client.search.search_databases(
+    sort={"direction": "ascending", "timestamp": "last_edited_time"},
+)
+databases = search_result["results"]
+log.debug("found %d database(s)", len(databases))
 
-for i in S.result:
-    database_id = i["id"]
-    logger.debug(database_id)
+if not databases:
+    log.warning("No accessible databases found. Make sure the integration is shared with a page.")
+    raise SystemExit(0)
 
-    PROPERTY = Properties()
-    PROPERTY.set_title("title")
-    PROPERTY.set_rich_text("description")
-    PROPERTY.set_number("number")
-    PROPERTY.set_number("number-float")
-    PROPERTY.set_select("select")
-    PROPERTY.set_multi_select("multi_select")
-    PROPERTY.set_multi_select("multi_select2")
-    PROPERTY.set_checkbox("checkbox")
-    PROPERTY.set_url("url")
-    PROPERTY.set_email("email")
-    PROPERTY.set_phone_number("phone")
-    PROPERTY.set_date("date")
-    PROPERTY.set_files("file")
+database_id = databases[0]["id"]
+log.debug("using database: %s", database_id)
 
-    PROPERTY.set_created_by("created_by")
-    PROPERTY.set_created_time("created_time")
-    PROPERTY.set_last_edited_by("last_edited_by")
-    PROPERTY.set_last_edited_time("last_edited_time")
+# ──────────────────────────────────────────────
+# 2. Retrieve and update a database
+# ──────────────────────────────────────────────
+log.debug("=== 2. Retrieve & update database ===")
+db = client.databases.retrieve(database_id)
+pprint.pprint(db)
 
-    # Get Properties and Remove/Update Database
-    logger.debug("Get properties")
-    D = Database(integrations_token=NOTION_KEY)
-    D.retrieve_database(database_id, get_properties=True)
-    logger.debug("Remove/Update Database")
-    cover = Cover()
-    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    icon = Icon()
-    icon.set_icon_emoji("📚")
-    D.update_database(database_id=database_id, title="DB", add_properties=PROPERTY, cover=cover, icon=icon)
+client.databases.update(
+    database_id,
+    title=[RichText.text("Updated DB")],
+    icon=Icon.emoji("📚"),
+    cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+)
 
-    # Retrieve Database
-    logger.debug("Retrieve Database")
-    D = Database(integrations_token=NOTION_KEY)
-    D.retrieve_database(database_id=database_id)
+# ──────────────────────────────────────────────
+# 3. Create a page (all PropertyValue types + all BlockContent types)
+# ──────────────────────────────────────────────
+log.debug("=== 3. Create page ===")
+page = client.pages.create(
+    parent={"database_id": database_id},
+    properties={
+        "title":         PropertyValue.title([
+                             RichText.text("Hello, "),
+                             RichText.text("Notion 2.0!", bold=True),
+                         ]),
+        "description":   PropertyValue.rich_text("Example page created by notion-database 2.0"),
+        "number":        PropertyValue.number(1),
+        "number-float":  PropertyValue.number(1.5),
+        "select":        PropertyValue.select("test1"),
+        "multi_select":  PropertyValue.multi_select(["test1", "test2"]),
+        "multi_select2": PropertyValue.multi_select(["test1", "test2", "test3"]),
+        "checkbox":      PropertyValue.checkbox(True),
+        "url":           PropertyValue.url("https://www.google.com"),
+        "email":         PropertyValue.email("test@test.com"),
+        "phone":         PropertyValue.phone_number("+1-555-0100"),
+        "date":          PropertyValue.date("2024-01-01T00:00:00.000+09:00"),
+        "file":          PropertyValue.files([
+                             "https://github.githubassets.com/images/modules/logos_page/Octocat.png"
+                         ]),
+    },
+    icon=Icon.emoji("📚"),
+    cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+    children=[
+        # Title and intro
+        BlockContent.heading_1("notion-database 2.0 Example"),
+        BlockContent.paragraph([
+            RichText.text("This page was created with "),
+            RichText.text("notion-database 2.0", bold=True),
+            RichText.text("."),
+        ]),
 
-    PROPERTY = Properties()
-    PROPERTY.set_title("title", "title")
-    PROPERTY.set_rich_text("description", "")
-    PROPERTY.set_number("number", 1)
-    PROPERTY.set_number("number-float", 1.5)
-    PROPERTY.set_select("select", "test1")
-    PROPERTY.set_multi_select("multi_select", ["test1", "test2"])
-    PROPERTY.set_multi_select("multi_select2", ["test1", "test2", "test3"])
-    PROPERTY.set_checkbox("checkbox", True)
-    PROPERTY.set_url("url", "www.google.com")
-    PROPERTY.set_email("email", "test@test.com")
-    PROPERTY.set_phone_number("phone", "010-0000-0000")
-    PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900")
-    PROPERTY.set_files("file", files_list=["https://github.githubassets.com/images/modules/logos_page/Octocat.png"])
+        # Structural
+        BlockContent.divider(),
+        BlockContent.table_of_contents(),
+        BlockContent.breadcrumb(),
 
-    # Children block
-    logger.debug("Set Children block")
-    children = Children()
-    # children.set_body("hello world!")  # deprecated. set_body -> set_paragraph
-    children.set_paragraph("set_paragraph")
-    children.set_paragraph("set_paragraph", color=clr.BLUE)
+        # Text blocks
+        BlockContent.heading_2("Text Blocks"),
+        BlockContent.paragraph("Plain paragraph", color=BLUE),
+        BlockContent.heading_1("Heading 1"),
+        BlockContent.heading_2("Heading 2", color=BLUE_BACKGROUND),
+        BlockContent.heading_3("Heading 3", color=GREEN),
+        BlockContent.callout("This is a callout.", color=RED_BACKGROUND),
+        BlockContent.quote("This is a quote.", color=RED),
 
-    children.set_heading_1("set_heading_1")
-    children.set_heading_2("set_heading_2")
-    children.set_heading_3("set_heading_3")
-    children.set_heading_1("set_heading_1", color=clr.BLUE)
-    children.set_heading_2("set_heading_2", color=clr.BLUE_BACKGROUND)
-    children.set_heading_3("set_heading_3", color=clr.GREEN)
+        # Lists
+        BlockContent.heading_2("List Blocks"),
+        BlockContent.bulleted_list_item("Bullet item 1"),
+        BlockContent.bulleted_list_item("Bullet item 2", color=BROWN),
+        BlockContent.bulleted_list_item("Nested bullet", children=[
+            BlockContent.bulleted_list_item("Child item"),
+        ]),
+        BlockContent.numbered_list_item("Numbered item 1"),
+        BlockContent.numbered_list_item("Numbered item 2", color=BROWN),
+        BlockContent.to_do("Completed task", checked=True),
+        BlockContent.to_do("Pending task", checked=False, color=RED),
 
-    children.set_callout("set_callout")
-    children.set_callout("set_callout", color=clr.RED_BACKGROUND)
+        # Toggle
+        BlockContent.toggle("Toggle header", color=BLUE, children=[
+            BlockContent.paragraph("Hidden content inside the toggle."),
+        ]),
 
-    children.set_quote("set_quote")
-    children.set_quote("set_quote", color=clr.RED)
+        # Code
+        BlockContent.heading_2("Code Blocks"),
+        BlockContent.code('print("Hello, Notion!")', language="python"),
+        BlockContent.code("const a = 1;", language="javascript"),
+        BlockContent.code("SELECT * FROM pages;", language="sql"),
 
-    children.set_bulleted_list_item("set_bulleted_list_item")
-    children.set_bulleted_list_item("set_bulleted_list_item", color=clr.BROWN)
+        # Math
+        BlockContent.equation("E = mc^2"),
 
-    children.set_numbered_list_item("first set_numbered_list_item")
-    children.set_numbered_list_item("second set_numbered_list_item", color=clr.BROWN)
+        # Media
+        BlockContent.heading_2("Media Blocks"),
+        BlockContent.image(
+            "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
+            caption="GitHub Octocat",
+        ),
+        BlockContent.video("https://download.blender.org/peach/trailer/trailer_480p.mov"),
+        BlockContent.file("https://github.com/microsoft/ML-For-Beginners/raw/main/pdf/readme.pdf"),
+        BlockContent.pdf("https://github.com/microsoft/ML-For-Beginners/blob/main/pdf/readme.pdf"),
+        BlockContent.embed("https://www.google.com"),
+        BlockContent.bookmark("https://www.google.com"),
 
-    children.set_to_do("set_to_do", checked=True)
-    children.set_to_do("set_to_do", checked=False, color=clr.RED)
+        # Column layout
+        BlockContent.heading_2("Column Layout"),
+        BlockContent.column_list([
+            [BlockContent.paragraph("Left column")],
+            [BlockContent.paragraph("Right column")],
+        ]),
+    ],
+)
 
-    children.set_toggle("set_toggle", children_text="WOW!", color=clr.BLUE)
+page_id = page["id"]
+log.debug("created page: %s", page_id)
 
-    children.set_code("set_code")
-    children.set_code("const a = 1", lang="javascript")
-    children.set_code("print(\"hello world!\")", lang='python')
+# ──────────────────────────────────────────────
+# 4. Retrieve the page
+# ──────────────────────────────────────────────
+log.debug("=== 4. Retrieve page ===")
+page = client.pages.retrieve(page_id)
+pprint.pprint(page)
 
-    children.set_embed("https://www.google.com")
+# ──────────────────────────────────────────────
+# 5. Update the page
+# ──────────────────────────────────────────────
+log.debug("=== 5. Update page ===")
+client.pages.update(
+    page_id,
+    properties={
+        "title":       PropertyValue.title("Updated Title"),
+        "description": PropertyValue.rich_text("Updated description"),
+        "number":      PropertyValue.number(2),
+        "checkbox":    PropertyValue.checkbox(False),
+        "date":        PropertyValue.date(
+                           "2024-01-01T00:00:00.000+09:00",
+                           end="2024-01-31T00:00:00.000+09:00",
+                       ),
+        "file":        PropertyValue.files([
+                           "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
+                           "https://download.blender.org/peach/trailer/trailer_480p.mov",
+                       ]),
+    },
+    icon=Icon.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+    cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+)
 
-    children.set_external_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    children.set_external_video("https://download.blender.org/peach/trailer/trailer_480p.mov")
-    children.set_external_file("https://github.com/microsoft/ML-For-Beginners/raw/main/pdf/readme.pdf")
-    children.set_external_pdf("https://github.com/microsoft/ML-For-Beginners/blob/main/pdf/readme.pdf")
+# ──────────────────────────────────────────────
+# 6. Retrieve block children
+# ──────────────────────────────────────────────
+log.debug("=== 6. Retrieve block children ===")
+blocks_response = client.blocks.retrieve_children(page_id, page_size=5)
+pprint.pprint(blocks_response)
 
-    children.set_bookmark("https://www.google.com")
+first_block_id = blocks_response["results"][0]["id"]
+block = client.blocks.retrieve(first_block_id)
+pprint.pprint(block)
 
-    children.set_equation("e=mc^2")
+# Fetch all children with automatic pagination
+all_blocks = client.blocks.retrieve_all_children(page_id)
+log.debug("total blocks: %d", len(all_blocks))
 
-    children.set_divider()
-    children.set_table_of_contents()
-    children.set_breadcrumb()
+# Append a new block
+client.blocks.append_children(page_id, children=[
+    BlockContent.paragraph("This block was appended after the page was created."),
+])
 
-    # Create Page
-    logger.debug("Create Page")
-    P = Page(integrations_token=NOTION_KEY)
-    cover = Cover()
-    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    icon = Icon()
-    icon.set_icon_emoji("📚")
-    P.create_page(database_id=database_id, properties=PROPERTY, children=children, cover=cover, icon=icon)
+# ──────────────────────────────────────────────
+# 7. Query the database (filters + sorts)
+# ──────────────────────────────────────────────
+log.debug("=== 7. Query database ===")
 
-    # Retrieve Page
-    logger.debug("Retrieve Page")
-    page_id = P.result["id"]
-    logger.debug(page_id)
-    P.retrieve_page(page_id=page_id)
+# Simple filter
+result = client.databases.query(
+    database_id,
+    filter=Filter.checkbox("checkbox").equals(False),
+    sorts=[Sort.by_property("title")],
+)
+pprint.pprint(result)
 
-    PROPERTY.clear()
-    PROPERTY.set_title("title", "Custom_name")
-    PROPERTY.set_rich_text("description", "Custom_description")
-    PROPERTY.set_number("number", 2)
-    PROPERTY.set_checkbox("checkbox", False)
-    PROPERTY.set_date("date", "2022-12-31T01:01:01.000+0900", "2023-01-10T01:01:01.000+0900")
-    PROPERTY.set_files("file", files_list=["https://github.githubassets.com/images/modules/logos_page/Octocat.png",
-                                           "https://download.blender.org/peach/trailer/trailer_480p.mov"])
+# OR compound filter
+result = client.databases.query(
+    database_id,
+    filter=Filter.or_([
+        Filter.checkbox("checkbox").equals(False),
+        Filter.number("number").greater_than_or_equal_to(2),
+    ]),
+)
+pprint.pprint(result)
 
-    # Update Page
-    logger.debug("Update Page")
-    cover = Cover()
-    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    icon = Icon()
-    icon.set_icon_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    P.update_page(page_id=page_id, properties=PROPERTY, cover=cover, icon=icon)
+# Nested AND + OR filter
+result = client.databases.query(
+    database_id,
+    filter=Filter.and_([
+        Filter.text("title").is_not_empty(),
+        Filter.or_([
+            Filter.select("select").equals("test1"),
+            Filter.number("number").less_than(10),
+        ]),
+    ]),
+    sorts=[
+        Sort.descending("number"),
+        Sort.by_timestamp("last_edited_time", "descending"),
+    ],
+)
+pprint.pprint(result)
 
-    time.sleep(1)
-    # Archive Page
-    logger.debug("Archive Database")
-    P.archive_page(page_id=page_id, archived=True)
+# Fetch all results with automatic pagination
+all_pages = client.databases.query_all(database_id)
+log.debug("total pages: %d", len(all_pages))
 
-    time.sleep(1)
-    # Un-Archive Page
-    logger.debug("Un-Archive Database")
-    P.archive_page(page_id=page_id, archived=False)
+# ──────────────────────────────────────────────
+# 8. Archive and restore the page
+# ──────────────────────────────────────────────
+log.debug("=== 8. Archive & restore page ===")
+time.sleep(1)
+client.pages.archive(page_id)
+log.debug("page archived")
 
-    # Create Database
-    logger.debug("Create Database")
+time.sleep(1)
+client.pages.archive(page_id, archived=False)
+log.debug("page restored")
 
-    PROPERTY = Properties()
-    PROPERTY.set_title("child_name")
-    PROPERTY.set_rich_text("child_description")
-    PROPERTY.set_number("child_number")
-    PROPERTY.set_select("child_select")
-    PROPERTY.set_multi_select("child_multi_select")
-    PROPERTY.set_multi_select("child_multi_select2")
-    PROPERTY.set_checkbox("child_checkbox")
-    PROPERTY.set_url("child_url")
-    PROPERTY.set_email("child_email")
-    PROPERTY.set_phone_number("child_phone")
-    cover = Cover()
-    cover.set_cover_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    icon = Icon()
-    icon.set_icon_image("https://github.githubassets.com/images/modules/logos_page/Octocat.png")
-    D.create_database(page_id=page_id, title="TEST TITLE", properties=PROPERTY, cover=cover, icon=icon)
+# ──────────────────────────────────────────────
+# 9. Create a child database
+# ──────────────────────────────────────────────
+log.debug("=== 9. Create child database ===")
+child_db = client.databases.create(
+    parent={"type": "page_id", "page_id": page_id},
+    title=[RichText.text("Child Database")],
+    properties={
+        "Name":        PropertySchema.title(),
+        "Description": PropertySchema.rich_text(),
+        "Score":       PropertySchema.number(),
+        "Category":    PropertySchema.select([
+                           {"name": "Option A", "color": "green"},
+                           {"name": "Option B", "color": "red"},
+                       ]),
+        "Tags":        PropertySchema.multi_select(),
+        "Active":      PropertySchema.checkbox(),
+        "Website":     PropertySchema.url(),
+        "Email":       PropertySchema.email(),
+        "Phone":       PropertySchema.phone_number(),
+        "Due":         PropertySchema.date(),
+    },
+    icon=Icon.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+    cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+)
+log.debug("child database: %s", child_db["id"])
 
-    # Finding all pages in a database
-    D.find_all_page(database_id=database_id, page_size=1)
-    pprint.pprint(D.result)
-    # Pagination test
-    logger.debug("Pagination test")
-    if D.result["has_more"]:
-        D.find_all_page(database_id=database_id, start_cursor=D.result["next_cursor"])
-        pprint.pprint(D.result)
-    # D.run_query_database(database_id=database_id, body={})
+# ──────────────────────────────────────────────
+# 10. Users
+# ──────────────────────────────────────────────
+log.debug("=== 10. Users ===")
+me = client.users.me()
+log.debug("bot user: %s", me.get("name"))
+
+all_users = client.users.list_all()
+log.debug("workspace users: %d", len(all_users))
+
+log.debug("=== Done ===")
