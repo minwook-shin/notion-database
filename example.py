@@ -132,12 +132,18 @@ if parent_page_id is not None:
     for r in search_result["results"]:
         if r.get("in_trash") or r.get("archived"):
             continue
-        # Match on plain-text title
-        title_parts = r.get("title") or []
+        # In 2026-03-11 the search returns data_source objects whose title
+        # field may be empty.  Retrieve the full database container to get
+        # the authoritative title.
+        try:
+            full_db = client.databases.retrieve(r["id"])
+        except Exception:
+            continue
+        title_parts = full_db.get("title") or []
         plain = "".join(t.get("plain_text", "") for t in title_parts)
         if plain == DB_TITLE:
-            db_obj = r
-            log.debug("reusing existing database: %s", r["id"])
+            db_obj = full_db
+            log.debug("reusing existing database: %s", full_db["id"])
             break
 
     if db_obj is None:
