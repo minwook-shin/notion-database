@@ -259,3 +259,20 @@ class PagesAPI:
             f"/pages/{page_id}/markdown",
             {"type": "replace_content", "replace_content": replace_content},
         )
+
+    def append_markdown(self, page_id: str, markdown: str) -> Dict:
+        """Append Markdown content to the end of a page.
+
+        Args:
+            page_id: The ID of the page to append to.
+            markdown: Enhanced Markdown string to append.
+
+        Returns:
+            Updated Notion page object.
+
+        Reference: https://developers.notion.com/reference/update-page-markdown
+        """
+        return self._http.patch(
+            f"/pages/{page_id}/markdown",
+            {"type": "insert_content", "insert_content": {"new_str": markdown}},
+        )
