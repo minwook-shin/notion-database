@@ -66,7 +66,7 @@ for p in page_result["results"]:
 # Strategy 2: search everything, look for object:"page"
 if parent_page_id is None:
     all_result = client.search.search(
-        sort={"direction": "descending", "timestamp": "last_edited_time"},
+        sort={"direction": "ascending", "timestamp": "last_edited_time"},
     )
     for obj in all_result["results"]:
         if (obj.get("object") != "page"
