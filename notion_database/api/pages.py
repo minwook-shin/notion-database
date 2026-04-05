@@ -228,7 +228,7 @@ class PagesAPI:
         return self._http.get(f"/pages/{page_id}/markdown", params=params or None)
 
     # ------------------------------------------------------------------
-    # POST /pages/{page_id}/markdown  (Notion-Version: 2026-03-11)
+    # PATCH /pages/{page_id}/markdown  (Notion-Version: 2026-03-11)
     # ------------------------------------------------------------------
 
     def update_markdown(
@@ -247,7 +247,7 @@ class PagesAPI:
 
         Reference: https://developers.notion.com/reference/update-page-markdown
         """
-        return self._http.post(
+        return self._http.patch(
             f"/pages/{page_id}/markdown",
             {"markdown": markdown},
         )
