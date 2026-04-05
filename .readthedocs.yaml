@@ -5,3 +5,8 @@ build:
     python: "3.12"
 sphinx:
   configuration: docs/conf.py
+
+python:
+  install:
+    - requirements: |
+        sphinx-rtd-theme
