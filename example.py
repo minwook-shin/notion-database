@@ -122,29 +122,47 @@ ALL_PROPERTIES = {
     "file":          PropertySchema.files(),
 }
 
+DB_TITLE = "notion-database 2.0 Example DB"
+
 if parent_page_id is not None:
-    # Best path: create a fresh database with all required columns
-    db_created = client.databases.create(
-        parent={"type": "page_id", "page_id": parent_page_id},
-        title=[RichText.text("notion-database 2.0 Example DB")],
-        is_inline=False,
-        properties=ALL_PROPERTIES,
-        icon=Icon.emoji("📚"),
-    )
-    database_id = db_created["id"]
-    ds_list = db_created.get("data_sources") or []
+    # Reuse an existing example database with the same title if one exists,
+    # so re-running the example doesn't create duplicate databases.
+    db_obj = None
+    search_result = client.search.search_databases(DB_TITLE)
+    for r in search_result["results"]:
+        if r.get("in_trash") or r.get("archived"):
+            continue
+        # Match on plain-text title
+        title_parts = r.get("title") or []
+        plain = "".join(t.get("plain_text", "") for t in title_parts)
+        if plain == DB_TITLE:
+            db_obj = r
+            log.debug("reusing existing database: %s", r["id"])
+            break
+
+    if db_obj is None:
+        db_obj = client.databases.create(
+            parent={"type": "page_id", "page_id": parent_page_id},
+            title=[RichText.text(DB_TITLE)],
+            is_inline=False,
+            properties=ALL_PROPERTIES,
+            icon=Icon.emoji("📚"),
+        )
+        log.debug("created database: %s", db_obj["id"])
+
+    database_id = db_obj["id"]
+    ds_list = db_obj.get("data_sources") or []
     data_source_id = ds_list[0]["id"] if ds_list else None
-    log.debug("created database: %s  data_source: %s", database_id, data_source_id)
-    pprint.pprint(db_created)
-    # Determine which columns were actually created (2026-03-11 may put schema
-    # in data_source rather than the container object)
+    log.debug("database_id: %s  data_source_id: %s", database_id, data_source_id)
+    pprint.pprint(db_obj)
+    # Determine which columns actually exist (2026-03-11 puts schema in data_source)
     if ds_list:
         available_properties = set((ds_list[0].get("properties") or {}).keys())
     else:
-        available_properties = set((db_created.get("properties") or {}).keys())
-    available_properties.discard("title")  # title is always handled separately
+        available_properties = set((db_obj.get("properties") or {}).keys())
+    available_properties.discard("title")
     available_properties.add("title")
-    log.debug("available columns after create: %s", sorted(available_properties))
+    log.debug("available columns: %s", sorted(available_properties))
 else:
     # Fallback: use existing database; only populate columns that exist
     pprint.pprint(fallback_db)
