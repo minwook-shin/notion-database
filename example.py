@@ -68,6 +68,7 @@ if not databases:
 database_id = None
 db = None
 datasource = None  # data_source object from search (carries "properties")
+data_source_id = None  # original data_source ID (for schema/page/query ops)
 for candidate in databases:
     if candidate.get("in_trash") or candidate.get("archived"):
         log.debug("skipping trashed/archived database %s", candidate["id"])
@@ -77,7 +78,13 @@ for candidate in databases:
         db = client.databases.retrieve(cid)
         database_id = cid
         datasource = candidate  # keep for property schema access
-        log.debug("using database: %s", database_id)
+        # In 2026-03-11 the database container lists its data_sources.
+        # Schema updates, page creation, and queries must target the
+        # data_source ID, not the parent database container ID.
+        ds_list = db.get("data_sources") or []
+        if ds_list:
+            data_source_id = ds_list[0]["id"]
+        log.debug("using database: %s  data_source: %s", database_id, data_source_id)
         break
     except Exception as e:
         log.debug("skipping database %s (%s)", cid, e)
@@ -134,7 +141,12 @@ missing = {k: v for k, v in REQUIRED_PROPERTIES.items() if k not in existing}
 
 if missing:
     log.debug("adding missing columns: %s", list(missing.keys()))
-    client.databases.update(database_id, properties=missing)
+    # In 2026-03-11 properties belong to the data_source, not the database
+    # container — update via the data_source ID when available.
+    update_id = data_source_id or database_id
+    updated = client.databases.update(update_id, properties=missing)
+    log.debug("update response object=%r id=%r",
+              updated.get("object"), updated.get("id"))
 else:
     log.debug("all required columns already exist")
 
@@ -142,8 +154,10 @@ else:
 # 4. Create a page (all PropertyValue types + all BlockContent types)
 # ──────────────────────────────────────────────
 log.debug("=== 4. Create page ===")
+# In 2026-03-11 pages (rows) are created inside the data_source, not the
+# database container.  Fall back to database_id for older API versions.
 page = client.pages.create(
-    parent={"database_id": database_id},
+    parent={"database_id": data_source_id or database_id},
     properties={
         "title":         PropertyValue.title([
                              RichText.text("Hello, "),
@@ -310,10 +324,12 @@ except Exception as e:
 # 8. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
 log.debug("=== 8. Query database ===")
+# In 2026-03-11 queries target the data_source, not the database container.
+query_id = data_source_id or database_id
 
 # Simple filter — only non-trashed pages
 result = client.databases.query(
-    database_id,
+    query_id,
     filter=Filter.checkbox("checkbox").equals(False),
     sorts=[Sort.by_property("title")],
     in_trash=False,
@@ -322,7 +338,7 @@ pprint.pprint(result)
 
 # OR compound filter
 result = client.databases.query(
-    database_id,
+    query_id,
     filter=Filter.or_([
         Filter.checkbox("checkbox").equals(False),
         Filter.number("number").greater_than_or_equal_to(2),
@@ -332,7 +348,7 @@ pprint.pprint(result)
 
 # Nested AND + OR filter
 result = client.databases.query(
-    database_id,
+    query_id,
     filter=Filter.and_([
         Filter.text("title").is_not_empty(),
         Filter.or_([
@@ -349,7 +365,7 @@ pprint.pprint(result)
 
 # Filter by result_type: only pages (excludes embedded data sources)
 result = client.databases.query(
-    database_id,
+    query_id,
     result_type="page",
 )
 log.debug("page-type results: %d", len(result.get("results", [])))
@@ -370,7 +386,7 @@ log.debug("page-type results: %d", len(result.get("results", [])))
 # Filter.verification("Verified").equals("verified")
 
 # Fetch all results with automatic pagination
-all_pages = client.databases.query_all(database_id, in_trash=False)
+all_pages = client.databases.query_all(query_id, in_trash=False)
 log.debug("total pages: %d", len(all_pages))
 
 # ──────────────────────────────────────────────
