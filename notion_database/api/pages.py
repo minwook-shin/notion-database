@@ -91,7 +91,6 @@ class PagesAPI:
         children: Optional[List[Dict]] = None,
         icon: Optional[Dict] = None,
         cover: Optional[Dict] = None,
-        timezone: Optional[str] = None,
     ) -> Dict:
         """Create a new page.
 
@@ -107,11 +106,6 @@ class PagesAPI:
                 Build with :class:`~notion_database.models.blocks.BlockContent`.
             icon: Icon object.
             cover: Cover object.
-            timezone: IANA timezone string used when resolving template
-                variables such as ``@now`` and ``@today``
-                (e.g. ``"Asia/Seoul"``).  Defaults to the authorizing
-                user's timezone for public integrations, or UTC for
-                internal integrations.
 
         Returns:
             Newly created Notion page object.
@@ -128,8 +122,6 @@ class PagesAPI:
             body["icon"] = icon
         if cover is not None:
             body["cover"] = cover
-        if timezone is not None:
-            body["timezone"] = timezone
         return self._http.post("/pages", body)
 
     # ------------------------------------------------------------------
@@ -189,61 +181,3 @@ class PagesAPI:
             Updated Notion page object.
         """
         return self.update(page_id, archived=archived)
-
-    # ------------------------------------------------------------------
-    # GET /pages/{page_id}/markdown  (Notion-Version: 2026-03-11)
-    # ------------------------------------------------------------------
-
-    def retrieve_markdown(
-        self,
-        page_id: str,
-        *,
-        include_transcript: bool = False,
-    ) -> Dict:
-        """Retrieve a page's full content rendered as enhanced Markdown.
-
-        Returns a ``page_markdown`` object.  For very large pages
-        (20 000+ blocks) the ``truncated`` field will be ``true`` and
-        ``unknown_block_ids`` will list block IDs that were omitted.
-
-        Args:
-            page_id: The ID of the page to retrieve.
-            include_transcript: When ``True``, meeting-note transcript
-                content is included in full.  When ``False`` (default) a
-                placeholder with the meeting-note URL is used instead.
-
-        Returns:
-            ``{"type": "page_markdown", "page_id": "...", "markdown": "...",
-            "truncated": bool, "unknown_block_ids": [...]}``
-
-        Reference: https://developers.notion.com/reference/retrieve-page-markdown
-        """
-        params: Dict[str, Any] = {}
-        if include_transcript:
-            params["include_transcript"] = "true"
-        return self._http.get(f"/pages/{page_id}/markdown", params=params or None)
-
-    # ------------------------------------------------------------------
-    # POST /pages/{page_id}/markdown  (Notion-Version: 2026-03-11)
-    # ------------------------------------------------------------------
-
-    def update_markdown(
-        self,
-        page_id: str,
-        markdown: str,
-    ) -> Dict:
-        """Replace a page's entire content with the provided Markdown.
-
-        Args:
-            page_id: The ID of the page whose content to replace.
-            markdown: Enhanced Markdown string to write as the page body.
-
-        Returns:
-            Updated Notion page object.
-
-        Reference: https://developers.notion.com/reference/update-page-markdown
-        """
-        return self._http.post(
-            f"/pages/{page_id}/markdown",
-            {"markdown": markdown},
-        )

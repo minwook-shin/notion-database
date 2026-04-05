@@ -42,7 +42,7 @@ from notion_database.models.properties import PropertySchema, PropertyValue
 from notion_database.models.rich_text import RichText
 from notion_database.models.sorts import Sort
 
-NOTION_VERSION = "2026-03-11"
+NOTION_VERSION = "2022-06-28"
 __version__ = "2.0.dev1"
 
 __all__ = [

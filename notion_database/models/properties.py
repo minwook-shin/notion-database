@@ -252,31 +252,6 @@ class PropertyValue:
             obj["prefix"] = prefix
         return {"unique_id": obj}
 
-    @staticmethod
-    def verification(
-        state: str = "unverified",
-        *,
-        verified_by: Optional[str] = None,
-        date: Optional[str] = None,
-    ) -> dict:
-        """Verification property value for wiki pages
-        (Notion-Version: 2026-03-11).
-
-        Args:
-            state: ``"verified"`` or ``"unverified"``.
-            verified_by: Optional user ID of the verifier.
-            date: Optional ISO 8601 expiration date string.
-
-        Returns:
-            ``{"verification": {"state": ..., ...}}``
-        """
-        obj: dict = {"state": state}
-        if verified_by is not None:
-            obj["verified_by"] = {"id": verified_by}
-        if date is not None:
-            obj["date"] = {"start": date}
-        return {"verification": obj}
-
 
 class PropertySchema:
     """Static factory methods for Notion database property *schemas*.
@@ -571,15 +546,3 @@ class PropertySchema:
         if prefix is not None:
             config["prefix"] = prefix
         return {"unique_id": config}
-
-    @staticmethod
-    def verification() -> dict:
-        """Verification column for wiki pages (Notion-Version: 2026-03-11).
-
-        Stores a verification state (``"verified"`` or ``"unverified"``) and
-        an optional expiration date.  Only available on wiki databases.
-
-        Returns:
-            ``{"verification": {}}``
-        """
-        return {"verification": {}}
