@@ -53,10 +53,15 @@ page_result = client.search.search_pages(
     sort={"direction": "ascending", "timestamp": "last_edited_time"},
 )
 for p in page_result["results"]:
-    if not p.get("in_trash") and not p.get("archived"):
-        parent_page_id = p["id"]
-        log.debug("found page via page filter: %s", parent_page_id)
-        break
+    if p.get("in_trash") or p.get("archived"):
+        continue
+    # Skip pages that live inside a database — they are rows, not real pages.
+    # We need a standalone page (workspace or page parent) to host the example DB.
+    if p.get("parent", {}).get("type") == "database_id":
+        continue
+    parent_page_id = p["id"]
+    log.debug("found page via page filter: %s", parent_page_id)
+    break
 
 # Strategy 2: search everything, look for object:"page"
 if parent_page_id is None:
@@ -64,12 +69,15 @@ if parent_page_id is None:
         sort={"direction": "descending", "timestamp": "last_edited_time"},
     )
     for obj in all_result["results"]:
-        if (obj.get("object") == "page"
-                and not obj.get("in_trash")
-                and not obj.get("archived")):
-            parent_page_id = obj["id"]
-            log.debug("found page via unfiltered search: %s", parent_page_id)
-            break
+        if (obj.get("object") != "page"
+                or obj.get("in_trash")
+                or obj.get("archived")):
+            continue
+        if obj.get("parent", {}).get("type") == "database_id":
+            continue
+        parent_page_id = obj["id"]
+        log.debug("found page via unfiltered search: %s", parent_page_id)
+        break
 
 # Strategy 3: fall back to any accessible database and work with its schema
 database_id = None
