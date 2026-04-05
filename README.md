@@ -38,7 +38,7 @@
 ## Install
 
 ```bash
-pip install notion-database==2.0.0rc1
+pip install notion-database==2.0.0
 ```
 
 ## Quick start
