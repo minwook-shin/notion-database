@@ -8,6 +8,8 @@ notion-database
 A Python client for the Notion API.
 Start with a single ``NotionClient`` and use the builder classes to compose requests.
 
+**Notion API version supported:** ``2026-03-11``
+
 Installation
 ------------
 
@@ -68,15 +70,18 @@ Create a Database
    db = client.databases.create(
        parent={"type": "page_id", "page_id": "page-id"},
        title=[RichText.text("My Database")],
+       is_inline=False,
        properties={
-           "Name":   PropertySchema.title(),
-           "Status": PropertySchema.select([
-                         {"name": "In Progress", "color": "blue"},
-                         {"name": "Done",        "color": "green"},
-                     ]),
-           "Score":  PropertySchema.number("number"),
-           "Due":    PropertySchema.date(),
-           "Done":   PropertySchema.checkbox(),
+           "Name":     PropertySchema.title(),
+           "Status":   PropertySchema.select([
+                           {"name": "In Progress", "color": "blue"},
+                           {"name": "Done",        "color": "green"},
+                       ]),
+           "Score":    PropertySchema.number("number"),
+           "Due":      PropertySchema.date(),
+           "Done":     PropertySchema.checkbox(),
+           "Action":   PropertySchema.button(),    # automation trigger (2026-03-11)
+           "Location": PropertySchema.location(),  # geographic location (2026-03-11)
        },
        icon=Icon.emoji("📋"),
    )
@@ -92,7 +97,52 @@ Update a Database
        "database-id",
        title=[RichText.text("Renamed Database")],
        icon=Icon.emoji("🗂️"),
+       is_inline=False,   # full-page layout
+       is_locked=True,    # prevent edits without unlocking (2026-03-11)
    )
+
+   # Move to trash
+   client.databases.update("database-id", in_trash=True)
+
+Query a Database
+~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+   from notion_database import Filter, Sort
+
+   # Simple filter
+   result = client.databases.query(
+       "database-id",
+       filter=Filter.select("Status").equals("In Progress"),
+       sorts=[Sort.descending("Due")],
+       in_trash=False,      # exclude trashed rows (2026-03-11)
+       result_type="page",  # only pages, not embedded data sources (2026-03-11)
+   )
+
+   # OR compound filter
+   result = client.databases.query(
+       "database-id",
+       filter=Filter.or_([
+           Filter.checkbox("Done").equals(False),
+           Filter.number("Score").greater_than(90),
+       ]),
+   )
+
+   # Nested AND + OR filter
+   result = client.databases.query(
+       "database-id",
+       filter=Filter.and_([
+           Filter.text("Name").is_not_empty(),
+           Filter.or_([
+               Filter.select("Status").equals("In Progress"),
+               Filter.date("Due").next_week(),
+           ]),
+       ]),
+   )
+
+   # Fetch all results with automatic pagination
+   all_pages = client.databases.query_all("database-id", in_trash=False)
 
 ----
 
@@ -121,6 +171,7 @@ The keys in ``properties`` must match the column names in the parent database.
        },
        icon=Icon.emoji("🚀"),
        cover=Cover.external("https://example.com/cover.jpg"),
+       timezone="Asia/Seoul",   # IANA timezone for @now / @today (2026-03-11)
        children=[
            BlockContent.heading_1("Introduction"),
            BlockContent.paragraph("This page was created with notion-database 2.0."),
@@ -158,6 +209,21 @@ Archive / Restore a Page
    client.pages.archive("page-id")                     # archive
    client.pages.archive("page-id", archived=False)     # restore
 
+Markdown API (Notion-Version: 2026-03-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+   # Retrieve page content as Markdown
+   md = client.pages.retrieve_markdown("page-id")
+   print(md["markdown"])
+
+   # Replace page content with Markdown
+   client.pages.update_markdown(
+       "page-id",
+       markdown="# New heading\n\nNew content.",
+   )
+
 ----
 
 Property Values
@@ -185,25 +251,69 @@ Use ``PropertyValue`` to build property values when creating or updating pages.
        "Attachment":  PropertyValue.files(["https://example.com/file.pdf"]),
        "Related":     PropertyValue.relation(["other-page-id"]),
        "Owner":       PropertyValue.people(["user-id"]),
+       # Verification (wiki pages, Notion-Version: 2026-03-11)
+       "Verified":    PropertyValue.verification("verified"),
    }
 
-Use ``PropertySchema`` to define database column schemas when creating or updating databases.
+----
+
+Property Schema
+---------------
+
+Use ``PropertySchema`` to define database column schemas.
 
 .. code:: python
 
    from notion_database import PropertySchema
 
    {
-       "Name":     PropertySchema.title(),
-       "Notes":    PropertySchema.rich_text(),
-       "Score":    PropertySchema.number("number"),
-       "Category": PropertySchema.select([{"name": "A"}, {"name": "B"}]),
-       "Tags":     PropertySchema.multi_select(),
-       "Due":      PropertySchema.date(),
-       "Done":     PropertySchema.checkbox(),
-       "Website":  PropertySchema.url(),
-       "Formula":  PropertySchema.formula("prop('Score') * 2"),
-       "Related":  PropertySchema.relation("other-database-id"),
+       # Text
+       "Name":         PropertySchema.title(),
+       "Notes":        PropertySchema.rich_text(),
+       "Website":      PropertySchema.url(),
+       "Email":        PropertySchema.email(),
+       "Phone":        PropertySchema.phone_number(),
+
+       # Numeric
+       "Score":        PropertySchema.number("number"),
+       "Price":        PropertySchema.number("dollar"),
+
+       # Selection
+       "Category":     PropertySchema.select([{"name": "A", "color": "green"}]),
+       "Tags":         PropertySchema.multi_select(),
+       "Status":       PropertySchema.status(),
+
+       # Date / time
+       "Due":          PropertySchema.date(),
+       "Created":      PropertySchema.created_time(),
+       "CreatedBy":    PropertySchema.created_by(),
+       "LastEdited":   PropertySchema.last_edited_time(),
+       "LastEditedBy": PropertySchema.last_edited_by(),
+
+       # Other
+       "Done":         PropertySchema.checkbox(),
+       "Files":        PropertySchema.files(),
+       "People":       PropertySchema.people(),
+
+       # Special (2026-03-11)
+       "Action":       PropertySchema.button(),            # automation trigger
+       "Location":     PropertySchema.location(),          # geographic location
+       "LastVisited":  PropertySchema.last_visited_time(), # read-only
+
+       # Computed
+       "Formula":      PropertySchema.formula("prop('Score') * 2"),
+       "UniqueID":     PropertySchema.unique_id(prefix="ITEM"),
+       "Related":      PropertySchema.relation("other-database-id"),
+       # Rollup — name-based (default):
+       "Rollup":       PropertySchema.rollup("Related", "Count", "count"),
+       # Rollup — ID-based (stable against column renames):
+       "RollupByID":   PropertySchema.rollup(
+                           "Related", "Count", "sum",
+                           relation_property_id="rel-id",
+                           rollup_property_id="prop-id",
+                       ),
+       # Verification (wiki databases only)
+       "Verified":     PropertySchema.verification(),
    }
 
 ----
@@ -260,7 +370,22 @@ Use ``BlockContent`` to build page content blocks.
            [BlockContent.paragraph("Left column")],
            [BlockContent.paragraph("Right column")],
        ]),
+
+       # Tab layout (Notion-Version: 2026-03-11)
+       BlockContent.tab_group([
+           BlockContent.tab("Overview", [BlockContent.paragraph("Overview content")]),
+           BlockContent.tab("Details",  [BlockContent.paragraph("Details content")]),
+       ]),
    ])
+
+   # Insert at a specific position (Notion-Version: 2026-03-11)
+   client.blocks.append_children("page-id", children=[
+       BlockContent.paragraph("Prepended to top"),
+   ], position={"type": "start"})
+
+   client.blocks.append_children("page-id", children=[
+       BlockContent.paragraph("After a sibling block"),
+   ], position={"type": "after_block", "after_block": {"id": "block-id"}})
 
 Retrieve Block Children
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -323,27 +448,50 @@ Filter Conditions Reference
 
 .. code:: python
 
+   # Text / title
    Filter.text("col").equals("value")
    Filter.text("col").contains("value")
    Filter.text("col").starts_with("value")
    Filter.text("col").is_empty()
    Filter.text("col").is_not_empty()
 
+   # Number
    Filter.number("col").greater_than(0)
    Filter.number("col").less_than_or_equal_to(100)
 
+   # Checkbox
    Filter.checkbox("col").equals(True)
 
+   # Select / multi-select / status
    Filter.select("col").equals("Option")
    Filter.multi_select("col").contains("tag")
+   Filter.status("col").does_not_equal("Archived")
 
+   # Date
    Filter.date("col").before("2025-01-01")
    Filter.date("col").past_week()
    Filter.date("col").next_month()
    Filter.date("col").this_week()
 
+   # People-type columns
+   Filter.people("col").contains("user-id")
+   Filter.created_by("col").contains("user-id")          # 2026-03-11
+   Filter.last_edited_by("col").does_not_contain("uid")  # 2026-03-11
+
+   # Timestamp columns
    Filter.created_time().after("2024-01-01")
    Filter.last_edited_time().past_week()
+
+   # Formula (value_type: "string" | "number" | "checkbox" | "date")
+   Filter.formula("Computed", "string").equals("ok")     # 2026-03-11
+   Filter.formula("Score",    "number").greater_than(50) # 2026-03-11
+
+   # Rollup (aggregate: "any" | "every" | "none" | "number")
+   Filter.rollup("Tasks", "any",   "number").greater_than(0)       # 2026-03-11
+   Filter.rollup("Tags",  "every", "rich_text").contains("urgent") # 2026-03-11
+
+   # Verification (wiki pages)
+   Filter.verification("Verified").equals("verified")    # 2026-03-11
 
    # Compound
    Filter.and_([...])

@@ -9,10 +9,36 @@
 
 > Python client for the Notion API — easy to use, 1-to-1 API mapping, AI/MCP friendly
 
+**Notion API version supported: `2026-03-11`**
+
+## What's new in 2.0
+
+| Feature | Description |
+|---|---|
+| `client.pages.retrieve_markdown()` | Retrieve a page as enhanced Markdown (`GET /pages/{id}/markdown`) |
+| `client.pages.update_markdown()` | Replace page content with Markdown (`PATCH /pages/{id}/markdown`) |
+| `client.pages.append_markdown()` | Append Markdown to the bottom of a page (`PATCH /pages/{id}/markdown`) |
+| `client.pages.create(timezone=...)` | IANA timezone for template variables (`@now`, `@today`) |
+| `client.blocks.append_children(position=...)` | Insert blocks at `start`, `end`, or `after_block` |
+| `client.databases.query(in_trash=...)` | Filter trashed / non-trashed rows |
+| `client.databases.update(is_inline=..., in_trash=..., is_locked=...)` | Toggle inline layout, trash, and lock state |
+| `client.databases.create(initial_data_source=...)` | Pre-populate a database from a data source on creation |
+| `PropertySchema.button()` | Automation button column |
+| `PropertySchema.location()` | Geographic location column |
+| `PropertySchema.last_visited_time()` | Last visited time column (read-only) |
+| `PropertySchema.rollup(relation_property_id=..., rollup_property_id=...)` | ID-based rollup lookup params |
+| `PropertySchema.verification()` | Wiki page verification column |
+| `PropertyValue.verification()` | Set wiki page verification state |
+| `BlockContent.tab()` / `tab_group()` | Tab layout blocks |
+| `Filter.created_by()` / `last_edited_by()` | Filter by creator or last editor |
+| `Filter.formula(name, value_type)` | Filter on formula property results |
+| `Filter.rollup(name, aggregate, value_type)` | Filter on rollup aggregates |
+| `Filter.verification()` | Filter on wiki verification state |
+
 ## Install
 
 ```bash
-pip install notion-database==2.0.dev1
+pip install notion-database==2.0.0rc1
 ```
 
 ## Quick start
@@ -74,10 +100,12 @@ results = client.databases.query(
 # Auto-paginate (returns all pages at once)
 all_pages = client.databases.query_all("database-id")
 
-# Update schema
+# Update schema — rename, lock, and set inline layout
 client.databases.update(
     "database-id",
     title=[RichText.text("Renamed DB")],
+    is_inline=False,  # full-page, not inline
+    is_locked=True,   # prevent edits without unlocking
 )
 ```
 
@@ -122,7 +150,7 @@ client.pages.archive("page-id", archived=False)
 ## Blocks
 
 ```python
-# Append content to a page
+# Append content to a page (inserted at end by default)
 client.blocks.append_children(
     "page-id",
     children=[
@@ -143,8 +171,22 @@ client.blocks.append_children(
             [BlockContent.paragraph("Left column")],
             [BlockContent.paragraph("Right column")],
         ]),
+        # Tab layout (Notion-Version: 2026-03-11)
+        BlockContent.tab_group([
+            BlockContent.tab("Overview", [BlockContent.paragraph("Overview content")]),
+            BlockContent.tab("Details",  [BlockContent.paragraph("Details content")]),
+        ]),
     ],
 )
+
+# Insert at a specific position (Notion-Version: 2026-03-11)
+client.blocks.append_children("page-id", children=[
+    BlockContent.paragraph("Prepended to top"),
+], position={"type": "start"})
+
+client.blocks.append_children("page-id", children=[
+    BlockContent.paragraph("After a specific block"),
+], position={"type": "after_block", "after_block": {"id": "block-id"}})
 
 # Retrieve children (single page)
 response = client.blocks.retrieve_children("page-id")
@@ -225,9 +267,25 @@ Filter.date("Due").before("2025-01-01")
 Filter.date("Due").past_week()
 Filter.date("Due").next_month()
 
-# Timestamp
+# People-type columns
+Filter.people("Assignee").contains("user-id")
+Filter.created_by("Created By").contains("user-id")
+Filter.last_edited_by("Last Edited By").does_not_contain("user-id")
+
+# Timestamp columns
 Filter.created_time().after("2024-01-01")
 Filter.last_edited_time().past_week()
+
+# Formula (value_type: "string" | "number" | "checkbox" | "date")
+Filter.formula("Computed", "string").equals("ok")
+Filter.formula("Score",    "number").greater_than(50)
+
+# Rollup (aggregate: "any" | "every" | "none" | "number"; value_type: property type)
+Filter.rollup("Tasks", "any",   "number").greater_than(0)
+Filter.rollup("Tags",  "every", "rich_text").contains("urgent")
+
+# Verification (wiki pages)
+Filter.verification("Verified").equals("verified")
 
 # Compound
 Filter.and_([
@@ -248,7 +306,7 @@ Filter.and_([
     ]),
 ])
 
-# Raw (escape hatch for unsupported types)
+# Raw (escape hatch)
 Filter.raw({"property": "Formula", "formula": {"string": {"equals": "ok"}}})
 ```
 
@@ -280,6 +338,61 @@ RichText.mention_database("db-id")
 RichText.mention_user("user-id")
 RichText.mention_date("2024-01-01", end="2024-01-31")
 RichText.equation("E=mc^2")
+```
+
+## PropertySchema reference
+
+```python
+from notion_database import PropertySchema
+
+{
+    # Text
+    "Name":         PropertySchema.title(),
+    "Notes":        PropertySchema.rich_text(),
+    "Website":      PropertySchema.url(),
+    "Email":        PropertySchema.email(),
+    "Phone":        PropertySchema.phone_number(),
+
+    # Numeric
+    "Score":        PropertySchema.number("number"),
+    "Price":        PropertySchema.number("dollar"),
+
+    # Selection
+    "Category":     PropertySchema.select([{"name": "A", "color": "green"}]),
+    "Tags":         PropertySchema.multi_select(),
+    "Status":       PropertySchema.status(),
+
+    # Date / time (read-only system columns)
+    "Due":          PropertySchema.date(),
+    "Created":      PropertySchema.created_time(),
+    "CreatedBy":    PropertySchema.created_by(),
+    "LastEdited":   PropertySchema.last_edited_time(),
+    "LastEditedBy": PropertySchema.last_edited_by(),
+
+    # Other
+    "Done":         PropertySchema.checkbox(),
+    "Files":        PropertySchema.files(),
+    "People":       PropertySchema.people(),
+
+    # Special (2026-03-11)
+    "Action":       PropertySchema.button(),           # automation trigger
+    "Location":     PropertySchema.location(),         # geographic location
+    "LastVisited":  PropertySchema.last_visited_time(), # read-only
+
+    # Computed
+    "Formula":      PropertySchema.formula("prop('Score') * 2"),
+    "UniqueID":     PropertySchema.unique_id(prefix="ITEM"),
+    "Related":      PropertySchema.relation("other-database-id"),
+    "Rollup":       PropertySchema.rollup("Related", "Count", "count"),
+    # ID-based rollup (stable against column renames)
+    "RollupByID":   PropertySchema.rollup(
+                        "Related", "Count", "sum",
+                        relation_property_id="rel-id",
+                        rollup_property_id="prop-id",
+                    ),
+    # Verification (wiki databases only)
+    "Verified":     PropertySchema.verification(),
+}
 ```
 
 ## Error handling

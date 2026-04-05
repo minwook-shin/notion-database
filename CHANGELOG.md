@@ -1,10 +1,10 @@
 # Changelog
 
-## 2.0.dev1 (2026-04-05)
+## 2.0.0rc1 (2026-04-05)
 
 Complete redesign of the package API.  All v1.x classes have been removed and
 replaced with a single `NotionClient` entry point backed by purpose-built
-resource sub-clients.
+resource sub-clients.  Notion API version bumped to **`2026-03-11`**.
 
 ### Breaking Changes
 
@@ -33,24 +33,26 @@ with 2.0.  Migration notes:
 * **`PropertyValue`** – static factory methods for page property values
   (`title`, `rich_text`, `number`, `select`, `multi_select`, `status`,
   `date`, `checkbox`, `url`, `email`, `phone_number`, `people`, `files`,
-  `relation`, `unique_id`)
+  `relation`, `unique_id`, `verification`)
 * **`PropertySchema`** – static factory methods for database column schemas
   (`title`, `rich_text`, `number`, `select`, `multi_select`, `status`,
   `date`, `checkbox`, `url`, `email`, `phone_number`, `people`, `files`,
   `relation`, `rollup`, `formula`, `created_time`, `created_by`,
-  `last_edited_time`, `last_edited_by`, `unique_id`)
+  `last_edited_time`, `last_edited_by`, `unique_id`, `verification`,
+  `button`, `location`, `last_visited_time`)
 * **`BlockContent`** – static factory methods for all supported block types
   (`paragraph`, `heading_1/2/3`, `callout`, `quote`, `bulleted_list_item`,
   `numbered_list_item`, `to_do`, `toggle`, `code`, `image`, `video`, `file`,
   `pdf`, `embed`, `bookmark`, `divider`, `table_of_contents`, `breadcrumb`,
-  `equation`, `column_list`)
+  `equation`, `column_list`, `tab`, `tab_group`)
 * **`RichText`** – rich-text element builder (`text`, `mention_page`,
   `mention_database`, `mention_user`, `mention_date`, `equation`)
 * **`Filter`** – fluent filter builder for database queries covering all
   property types (`text`, `title`, `number`, `checkbox`, `select`,
   `multi_select`, `status`, `date`, `people`, `files`, `relation`,
-  `url`, `email`, `phone_number`, `unique_id`) plus compound `and_`/`or_`
-  and timestamp filters (`created_time`, `last_edited_time`)
+  `url`, `email`, `phone_number`, `unique_id`, `created_by`,
+  `last_edited_by`, `formula`, `rollup`, `verification`) plus compound
+  `and_`/`or_` and timestamp filters (`created_time`, `last_edited_time`)
 * **`Sort`** – sort builder (`by_property`, `by_timestamp`, `ascending`,
   `descending`)
 * **`Icon` / `Cover`** – icon and cover object builders
@@ -65,6 +67,39 @@ with 2.0.  Migration notes:
 * **Comments API** – `comments.retrieve()`, `comments.create()`
 * Dropped `urllib3<2.0` constraint
 * Minimum Python version raised to 3.10
+
+### Notion API 2026-03-11 additions
+
+* **`pages.retrieve_markdown(page_id)`** – retrieve page content as enhanced
+  Markdown (`GET /pages/{id}/markdown`)
+* **`pages.update_markdown(page_id, markdown)`** – replace page content with
+  Markdown (`POST /pages/{id}/markdown`)
+* **`pages.create(timezone=...)`** – IANA timezone string for resolving
+  template variables (`@now`, `@today`)
+* **`blocks.append_children(position=...)`** – insert blocks at `"start"`,
+  `"end"`, or `"after_block"` instead of always appending to the end
+* **`databases.query(in_trash=...)`** – filter trashed / non-trashed rows
+* **`databases.query_all(in_trash=...)`** – same param forwarded through the
+  auto-pagination helper
+* **`databases.create(initial_data_source=...)`** – pre-populate a new
+  database from a data source on creation
+* **`databases.update(is_inline=..., in_trash=..., is_locked=...)`** – toggle
+  inline layout, move to trash, or lock the database
+* **`PropertySchema.button()`** – automation button column
+* **`PropertySchema.location()`** – geographic location column
+* **`PropertySchema.last_visited_time()`** – read-only last-visited-time column
+* **`PropertySchema.rollup(relation_property_id=..., rollup_property_id=...)`**
+  – optional ID-based lookup params for stable rollup definitions
+* **`PropertySchema.verification()`** – wiki page verification column
+* **`PropertyValue.verification()`** – set verification state on wiki pages
+* **`BlockContent.tab()` / `tab_group()`** – tab layout blocks
+* **`Filter.created_by()`** / **`Filter.last_edited_by()`** – filter by
+  creator or last editor
+* **`Filter.formula(name, value_type)`** – filter on formula property results
+  (`"string"`, `"number"`, `"checkbox"`, `"date"`)
+* **`Filter.rollup(name, aggregate, value_type)`** – filter on rollup
+  aggregates (`"any"`, `"every"`, `"none"`, `"number"`)
+* **`Filter.verification()`** – filter on wiki verification state
 
 ## 1.4.1 (2026-04-05)
 

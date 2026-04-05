@@ -252,6 +252,31 @@ class PropertyValue:
             obj["prefix"] = prefix
         return {"unique_id": obj}
 
+    @staticmethod
+    def verification(
+        state: str = "unverified",
+        *,
+        verified_by: Optional[str] = None,
+        date: Optional[str] = None,
+    ) -> dict:
+        """Verification property value for wiki pages
+        (Notion-Version: 2026-03-11).
+
+        Args:
+            state: ``"verified"`` or ``"unverified"``.
+            verified_by: Optional user ID of the verifier.
+            date: Optional ISO 8601 expiration date string.
+
+        Returns:
+            ``{"verification": {"state": ..., ...}}``
+        """
+        obj: dict = {"state": state}
+        if verified_by is not None:
+            obj["verified_by"] = {"id": verified_by}
+        if date is not None:
+            obj["date"] = {"start": date}
+        return {"verification": obj}
+
 
 class PropertySchema:
     """Static factory methods for Notion database property *schemas*.
@@ -312,7 +337,8 @@ class PropertySchema:
                 ``"shekel"``, ``"chilean_peso"``, ``"philippine_peso"``,
                 ``"dirham"``, ``"colombian_peso"``, ``"riyal"``,
                 ``"ringgit"``, ``"leu"``, ``"argentine_peso"``,
-                ``"uruguayan_peso"``, or ``"singapore_dollar"``.
+                ``"uruguayan_peso"``, ``"singapore_dollar"``,
+                ``"thai_baht"``, or ``"brazilian_real"``.
 
         Returns:
             ``{"number": {"format": format}}``
@@ -456,6 +482,9 @@ class PropertySchema:
         relation_property_name: str,
         rollup_property_name: str,
         function: str,
+        *,
+        relation_property_id: Optional[str] = None,
+        rollup_property_id: Optional[str] = None,
     ) -> dict:
         """Rollup column.
 
@@ -471,18 +500,26 @@ class PropertySchema:
                 ``"percent_empty"``, ``"percent_not_empty"``,
                 ``"percent_per_group"``, ``"percent_unchecked"``, ``"range"``,
                 ``"unchecked"``, ``"unique"``, ``"show_original"``,
-                ``"show_unique"``, or ``"sum"``.
+                ``"show_unique"``, ``"sum"``, ``"count_all"``,
+                ``"count_empty"``, ``"count_not_empty"``, or ``"concat"``.
+            relation_property_id: Optional ID of the relation column (alternative
+                to ``relation_property_name`` for ID-based lookup).
+            rollup_property_id: Optional ID of the property in the related
+                database (alternative to ``rollup_property_name``).
 
         Returns:
             Notion rollup property schema dict.
         """
-        return {
-            "rollup": {
-                "relation_property_name": relation_property_name,
-                "rollup_property_name": rollup_property_name,
-                "function": function,
-            }
+        config: dict = {
+            "relation_property_name": relation_property_name,
+            "rollup_property_name": rollup_property_name,
+            "function": function,
         }
+        if relation_property_id is not None:
+            config["relation_property_id"] = relation_property_id
+        if rollup_property_id is not None:
+            config["rollup_property_id"] = rollup_property_id
+        return {"rollup": config}
 
     @staticmethod
     def formula(expression: str) -> dict:
@@ -546,3 +583,43 @@ class PropertySchema:
         if prefix is not None:
             config["prefix"] = prefix
         return {"unique_id": config}
+
+    @staticmethod
+    def button() -> dict:
+        """Button column (triggers a configured automation when clicked).
+
+        Returns:
+            ``{"button": {}}``
+        """
+        return {"button": {}}
+
+    @staticmethod
+    def location() -> dict:
+        """Location column (stores a geographic location / address).
+
+        Returns:
+            ``{"location": {}}``
+        """
+        return {"location": {}}
+
+    @staticmethod
+    def last_visited_time() -> dict:
+        """Last visited time column (read-only; tracks when a page was last
+        opened by a user).
+
+        Returns:
+            ``{"last_visited_time": {}}``
+        """
+        return {"last_visited_time": {}}
+
+    @staticmethod
+    def verification() -> dict:
+        """Verification column for wiki pages (Notion-Version: 2026-03-11).
+
+        Stores a verification state (``"verified"`` or ``"unverified"``) and
+        an optional expiration date.  Only available on wiki databases.
+
+        Returns:
+            ``{"verification": {}}``
+        """
+        return {"verification": {}}

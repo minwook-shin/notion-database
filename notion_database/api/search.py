@@ -30,7 +30,7 @@ class SearchAPI:
             query: Text to search for.  Pass an empty string to list all
                 accessible objects.
             filter: Object type filter.  ``{"value": "page", "property": "object"}``
-                or ``{"value": "database", "property": "object"}``.
+                or ``{"value": "data_source", "property": "object"}``.
             sort: Sort criteria dict, e.g.
                 ``{"direction": "ascending", "timestamp": "last_edited_time"}``.
             start_cursor: Cursor for pagination.
@@ -61,28 +61,49 @@ class SearchAPI:
         sort: Optional[Dict] = None,
         start_cursor: Optional[str] = None,
         page_size: int = 100,
+        include_archived: bool = False,
     ) -> Dict:
         """Search only databases.
 
-        Convenience wrapper around :meth:`search` with the database filter
-        pre-applied.
+        Uses the ``"data_source"`` filter value required by
+        Notion-Version 2026-03-11 (the old ``"database"`` value is no longer
+        accepted).  Trashed and archived results are excluded by default.
 
         Args:
             query: Text to search for.
             sort: Sort criteria dict.
             start_cursor: Cursor for pagination.
             page_size: Number of results per page.
+            include_archived: When ``True``, include archived/trashed results.
+                Defaults to ``False``.
 
         Returns:
-            Notion list object containing only database objects.
+            Notion list object whose ``results`` contain database objects.
         """
-        return self.search(
+        response = self.search(
             query,
-            filter={"value": "database", "property": "object"},
+            filter={"value": "data_source", "property": "object"},
             sort=sort,
             start_cursor=start_cursor,
             page_size=page_size,
         )
+        results = response.get("results", [])
+        if not include_archived:
+            results = [r for r in results if not r.get("in_trash") and not r.get("archived")]
+        # In Notion-Version 2026-03-11 the search endpoint returns
+        # object:"data_source" wrappers whose own `id` is NOT the database ID.
+        # The real database ID lives in parent.database_id.  Normalise so that
+        # callers can always use result["id"] with GET /databases/{id}.
+        normalised = []
+        for r in results:
+            if r.get("object") == "data_source":
+                parent = r.get("parent", {})
+                if parent.get("type") == "database_id" and parent.get("database_id"):
+                    r = dict(r)
+                    r["id"] = parent["database_id"]
+            normalised.append(r)
+        response["results"] = normalised
+        return response
 
     def search_pages(
         self,

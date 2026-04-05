@@ -87,20 +87,39 @@ class BlocksAPI:
     # PATCH /blocks/{block_id}/children
     # ------------------------------------------------------------------
 
-    def append_children(self, block_id: str, children: List[Dict]) -> Dict:
+    def append_children(
+        self,
+        block_id: str,
+        children: List[Dict],
+        *,
+        position: Optional[Dict] = None,
+    ) -> Dict:
         """Append new block children to a block or page.
 
         Args:
             block_id: The parent block or page ID to append to.
             children: List of block objects to append.  Build with
                 :class:`~notion_database.models.blocks.BlockContent`.
+            position: Optional placement object (requires
+                ``Notion-Version: 2026-03-11``).  Controls where the new
+                blocks are inserted relative to existing children.
+                Three forms are supported:
+
+                * ``{"type": "end"}`` – append after the last child
+                  (default behaviour when omitted).
+                * ``{"type": "start"}`` – prepend before the first child.
+                * ``{"type": "after_block", "after_block": {"id": "<block_id>"}}``
+                  – insert immediately after the specified sibling block.
 
         Returns:
             Notion list object containing the newly appended block objects.
 
         Reference: https://developers.notion.com/reference/patch-block-children
         """
-        return self._http.patch(f"/blocks/{block_id}/children", {"children": children})
+        body: Dict[str, Any] = {"children": children}
+        if position is not None:
+            body["position"] = position
+        return self._http.patch(f"/blocks/{block_id}/children", body)
 
     # ------------------------------------------------------------------
     # PATCH /blocks/{block_id}

@@ -43,42 +43,79 @@ NOTION_KEY = os.environ["NOTION_KEY"]
 client = NotionClient(NOTION_KEY)
 
 # ──────────────────────────────────────────────
-# 1. Search databases
+# 1. Find a parent page; fall back to an existing database
 # ──────────────────────────────────────────────
-log.debug("=== 1. Search databases ===")
-search_result = client.search.search_databases(
+log.debug("=== 1. Find parent page ===")
+
+# Strategy 1: search with the "page" filter
+parent_page_id = None
+page_result = client.search.search_pages(
     sort={"direction": "ascending", "timestamp": "last_edited_time"},
 )
-databases = search_result["results"]
-log.debug("found %d database(s)", len(databases))
+for p in page_result["results"]:
+    if p.get("in_trash") or p.get("archived"):
+        continue
+    # Skip pages that live inside a database — they are rows, not real pages.
+    # We need a standalone page (workspace or page parent) to host the example DB.
+    if p.get("parent", {}).get("type") == "database_id":
+        continue
+    parent_page_id = p["id"]
+    log.debug("found page via page filter: %s", parent_page_id)
+    break
 
-if not databases:
-    log.warning("No accessible databases found. Make sure the integration is shared with a page.")
+# Strategy 2: search everything, look for object:"page"
+if parent_page_id is None:
+    all_result = client.search.search(
+        sort={"direction": "ascending", "timestamp": "last_edited_time"},
+    )
+    for obj in all_result["results"]:
+        if (obj.get("object") != "page"
+                or obj.get("in_trash")
+                or obj.get("archived")):
+            continue
+        if obj.get("parent", {}).get("type") == "database_id":
+            continue
+        parent_page_id = obj["id"]
+        log.debug("found page via unfiltered search: %s", parent_page_id)
+        break
+
+# Strategy 3: fall back to any accessible database and work with its schema
+database_id = None
+data_source_id = None
+fallback_db = None
+available_properties: set = set()
+if parent_page_id is None:
+    log.debug("no page found — falling back to existing database")
+    db_search = client.search.search_databases(
+        sort={"direction": "ascending", "timestamp": "last_edited_time"},
+    )
+    for candidate in db_search["results"]:
+        if candidate.get("in_trash") or candidate.get("archived"):
+            continue
+        try:
+            fallback_db = client.databases.retrieve(candidate["id"])
+            database_id = candidate["id"]
+            ds_list = fallback_db.get("data_sources") or []
+            data_source_id = ds_list[0]["id"] if ds_list else None
+            log.debug("using existing database: %s", database_id)
+            break
+        except Exception as e:
+            log.debug("skipping database %s (%s)", candidate["id"], e)
+
+if parent_page_id is None and database_id is None:
+    log.warning(
+        "No accessible page or database found. "
+        "Share at least one page with your integration."
+    )
     raise SystemExit(0)
 
-database_id = databases[0]["id"]
-log.debug("using database: %s", database_id)
-
 # ──────────────────────────────────────────────
-# 2. Retrieve and update a database
+# 2. Create a fresh example database (or reuse existing)
 # ──────────────────────────────────────────────
-log.debug("=== 2. Retrieve & update database ===")
-db = client.databases.retrieve(database_id)
-pprint.pprint(db)
+log.debug("=== 2. Create / reuse example database ===")
 
-client.databases.update(
-    database_id,
-    title=[RichText.text("Updated DB")],
-    icon=Icon.emoji("📚"),
-    cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
-)
-
-# ──────────────────────────────────────────────
-# 3. Ensure required columns exist in the database
-# ──────────────────────────────────────────────
-log.debug("=== 3. Ensure required columns ===")
-
-REQUIRED_PROPERTIES = {
+ALL_PROPERTIES = {
+    "title":         PropertySchema.title(),
     "description":   PropertySchema.rich_text(),
     "number":        PropertySchema.number(),
     "number-float":  PropertySchema.number(),
@@ -93,41 +130,140 @@ REQUIRED_PROPERTIES = {
     "file":          PropertySchema.files(),
 }
 
-existing = set(db["properties"].keys())
-missing = {k: v for k, v in REQUIRED_PROPERTIES.items() if k not in existing}
+DB_TITLE = "notion-database 2.0 Example DB"
 
-if missing:
-    log.debug("adding missing columns: %s", list(missing.keys()))
-    client.databases.update(database_id, properties=missing)
+if parent_page_id is not None:
+    # Reuse an existing example database with the same title if one exists,
+    # so re-running the example doesn't create duplicate databases.
+    db_obj = None
+    search_result = client.search.search_databases(DB_TITLE)
+    for r in search_result["results"]:
+        if r.get("in_trash") or r.get("archived"):
+            continue
+        # In 2026-03-11 the search returns data_source objects whose title
+        # field may be empty.  Retrieve the full database container to get
+        # the authoritative title.
+        try:
+            full_db = client.databases.retrieve(r["id"])
+        except Exception:
+            continue
+        title_parts = full_db.get("title") or []
+        plain = "".join(t.get("plain_text", "") for t in title_parts)
+        if plain == DB_TITLE:
+            db_obj = full_db
+            log.debug("reusing existing database: %s", full_db["id"])
+            break
+
+    if db_obj is None:
+        db_obj = client.databases.create(
+            parent={"type": "page_id", "page_id": parent_page_id},
+            title=[RichText.text(DB_TITLE)],
+            is_inline=False,
+            properties=ALL_PROPERTIES,
+            icon=Icon.emoji("📚"),
+        )
+        log.debug("created database: %s", db_obj["id"])
+
+    database_id = db_obj["id"]
+    ds_list = db_obj.get("data_sources") or []
+    data_source_id = ds_list[0]["id"] if ds_list else None
+    log.debug("database_id: %s  data_source_id: %s", database_id, data_source_id)
+    pprint.pprint(db_obj)
+    # Determine which columns actually exist (2026-03-11 puts schema in data_source)
+    if ds_list:
+        available_properties = set((ds_list[0].get("properties") or {}).keys())
+    else:
+        available_properties = set((db_obj.get("properties") or {}).keys())
+    available_properties.discard("title")
+    available_properties.add("title")
+    log.debug("available columns: %s", sorted(available_properties))
 else:
-    log.debug("all required columns already exist")
+    # Fallback: use existing database; only populate columns that exist
+    pprint.pprint(fallback_db)
+    # Get property names from the data_source (2026-03-11) or database object
+    ds_props = {}
+    if data_source_id:
+        ds_refresh = client.search.search_databases()
+        for r in ds_refresh["results"]:
+            if r["id"] == database_id:
+                ds_props = r.get("properties") or {}
+                break
+    available_properties = set(ds_props.keys()) | set(
+        (fallback_db.get("properties") or {}).keys()
+    )
+    log.debug("existing columns: %s", sorted(available_properties))
+    missing = {k: v for k, v in ALL_PROPERTIES.items() if k not in available_properties}
+    if missing:
+        log.debug("attempting to add missing columns via PATCH: %s", sorted(missing))
+        try:
+            client.databases.update(database_id, properties=missing)
+            # Re-fetch to see which columns were actually added
+            refreshed = client.databases.retrieve(database_id)
+            ds_list2 = refreshed.get("data_sources") or []
+            if ds_list2:
+                refreshed_props = set((ds_list2[0].get("properties") or {}).keys())
+            else:
+                refreshed_props = set((refreshed.get("properties") or {}).keys())
+            available_properties = available_properties | refreshed_props
+            still_missing = set(missing) - available_properties
+            if still_missing:
+                log.warning(
+                    "Could not add columns %s to existing database. "
+                    "Share a PAGE with the integration to let the example create its own database.",
+                    sorted(still_missing),
+                )
+            else:
+                log.debug("all missing columns added successfully")
+        except Exception as e:
+            log.warning("PATCH to add columns failed (%s). Continuing with available columns.", e)
+
+# ──────────────────────────────────────────────
+# 3. Retrieve and update the database metadata
+# ──────────────────────────────────────────────
+log.debug("=== 3. Retrieve & update database ===")
+db = client.databases.retrieve(database_id)
+pprint.pprint(db)
+
+client.databases.update(
+    database_id,
+    title=[RichText.text("Updated Example DB")],
+    icon=Icon.emoji("📚"),
+    cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
+    is_inline=False,
+    is_locked=False,
+)
 
 # ──────────────────────────────────────────────
 # 4. Create a page (all PropertyValue types + all BlockContent types)
 # ──────────────────────────────────────────────
 log.debug("=== 4. Create page ===")
+
+# Build property values — only include columns that exist in this database
+_ap = available_properties
+page_properties: dict = {
+    "title": PropertyValue.title([
+        RichText.text("Hello, "),
+        RichText.text("Notion 2.0!", bold=True),
+    ]),
+}
+if "description"   in _ap: page_properties["description"]   = PropertyValue.rich_text("Example page created by notion-database 2.0")
+if "number"        in _ap: page_properties["number"]        = PropertyValue.number(1)
+if "number-float"  in _ap: page_properties["number-float"]  = PropertyValue.number(1.5)
+if "select"        in _ap: page_properties["select"]        = PropertyValue.select("test1")
+if "multi_select"  in _ap: page_properties["multi_select"]  = PropertyValue.multi_select(["test1", "test2"])
+if "multi_select2" in _ap: page_properties["multi_select2"] = PropertyValue.multi_select(["test1", "test2", "test3"])
+if "checkbox"      in _ap: page_properties["checkbox"]      = PropertyValue.checkbox(True)
+if "url"           in _ap: page_properties["url"]           = PropertyValue.url("https://www.google.com")
+if "email"         in _ap: page_properties["email"]         = PropertyValue.email("test@test.com")
+if "phone"         in _ap: page_properties["phone"]         = PropertyValue.phone_number("+1-555-0100")
+if "date"          in _ap: page_properties["date"]          = PropertyValue.date("2024-01-01T00:00:00.000+09:00")
+if "file"          in _ap: page_properties["file"]          = PropertyValue.files([
+    "https://github.githubassets.com/images/modules/logos_page/Octocat.png"
+])
+
 page = client.pages.create(
     parent={"database_id": database_id},
-    properties={
-        "title":         PropertyValue.title([
-                             RichText.text("Hello, "),
-                             RichText.text("Notion 2.0!", bold=True),
-                         ]),
-        "description":   PropertyValue.rich_text("Example page created by notion-database 2.0"),
-        "number":        PropertyValue.number(1),
-        "number-float":  PropertyValue.number(1.5),
-        "select":        PropertyValue.select("test1"),
-        "multi_select":  PropertyValue.multi_select(["test1", "test2"]),
-        "multi_select2": PropertyValue.multi_select(["test1", "test2", "test3"]),
-        "checkbox":      PropertyValue.checkbox(True),
-        "url":           PropertyValue.url("https://www.google.com"),
-        "email":         PropertyValue.email("test@test.com"),
-        "phone":         PropertyValue.phone_number("+1-555-0100"),
-        "date":          PropertyValue.date("2024-01-01T00:00:00.000+09:00"),
-        "file":          PropertyValue.files([
-                             "https://github.githubassets.com/images/modules/logos_page/Octocat.png"
-                         ]),
-    },
+    properties=page_properties,
     icon=Icon.emoji("📚"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
     children=[
@@ -204,38 +340,37 @@ page_id = page["id"]
 log.debug("created page: %s", page_id)
 
 # ──────────────────────────────────────────────
-# 4. Retrieve the page
+# 5. Retrieve the page
 # ──────────────────────────────────────────────
 log.debug("=== 5. Retrieve page ===")
 page = client.pages.retrieve(page_id)
 pprint.pprint(page)
 
 # ──────────────────────────────────────────────
-# 5. Update the page
+# 6. Update the page
 # ──────────────────────────────────────────────
 log.debug("=== 6. Update page ===")
+update_properties: dict = {"title": PropertyValue.title("Updated Title")}
+if "description" in _ap: update_properties["description"] = PropertyValue.rich_text("Updated description")
+if "number"      in _ap: update_properties["number"]      = PropertyValue.number(2)
+if "checkbox"    in _ap: update_properties["checkbox"]    = PropertyValue.checkbox(False)
+if "date"        in _ap: update_properties["date"]        = PropertyValue.date(
+    "2024-01-01T00:00:00.000+09:00",
+    end="2024-01-31T00:00:00.000+09:00",
+)
+if "file"        in _ap: update_properties["file"]        = PropertyValue.files([
+    "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
+    "https://download.blender.org/peach/trailer/trailer_480p.mov",
+])
 client.pages.update(
     page_id,
-    properties={
-        "title":       PropertyValue.title("Updated Title"),
-        "description": PropertyValue.rich_text("Updated description"),
-        "number":      PropertyValue.number(2),
-        "checkbox":    PropertyValue.checkbox(False),
-        "date":        PropertyValue.date(
-                           "2024-01-01T00:00:00.000+09:00",
-                           end="2024-01-31T00:00:00.000+09:00",
-                       ),
-        "file":        PropertyValue.files([
-                           "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
-                           "https://download.blender.org/peach/trailer/trailer_480p.mov",
-                       ]),
-    },
+    properties=update_properties,
     icon=Icon.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
 )
 
 # ──────────────────────────────────────────────
-# 6. Retrieve block children
+# 7. Retrieve block children
 # ──────────────────────────────────────────────
 log.debug("=== 7. Retrieve block children ===")
 blocks_response = client.blocks.retrieve_children(page_id, page_size=5)
@@ -249,57 +384,81 @@ pprint.pprint(block)
 all_blocks = client.blocks.retrieve_all_children(page_id)
 log.debug("total blocks: %d", len(all_blocks))
 
-# Append a new block
+# Append blocks at end (default) and at start using position param (2026-03-11)
 client.blocks.append_children(page_id, children=[
-    BlockContent.paragraph("This block was appended after the page was created."),
+    BlockContent.paragraph("This block was appended after page creation."),
 ])
+client.blocks.append_children(page_id, children=[
+    BlockContent.paragraph("This block was prepended to the top."),
+], position={"type": "start"})
 
 # ──────────────────────────────────────────────
-# 7. Query the database (filters + sorts)
+# 8. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
 log.debug("=== 8. Query database ===")
+# data_source_id is the queryable object in 2026-03-11; fall back to
+# database_id for legacy databases that don't have a data_source.
+query_id = data_source_id or database_id
 
-# Simple filter
-result = client.databases.query(
-    database_id,
-    filter=Filter.checkbox("checkbox").equals(False),
-    sorts=[Sort.by_property("title")],
-)
-pprint.pprint(result)
+# Simple filter — only non-trashed pages (skip if checkbox column not present)
+if "checkbox" in _ap:
+    result = client.databases.query(
+        query_id,
+        filter=Filter.checkbox("checkbox").equals(False),
+        sorts=[Sort.by_property("title")],
+    )
+    pprint.pprint(result)
 
 # OR compound filter
-result = client.databases.query(
-    database_id,
-    filter=Filter.or_([
-        Filter.checkbox("checkbox").equals(False),
-        Filter.number("number").greater_than_or_equal_to(2),
-    ]),
-)
-pprint.pprint(result)
+if "checkbox" in _ap and "number" in _ap:
+    result = client.databases.query(
+        query_id,
+        filter=Filter.or_([
+            Filter.checkbox("checkbox").equals(False),
+            Filter.number("number").greater_than_or_equal_to(2),
+        ]),
+    )
+    pprint.pprint(result)
 
 # Nested AND + OR filter
-result = client.databases.query(
-    database_id,
-    filter=Filter.and_([
-        Filter.text("title").is_not_empty(),
-        Filter.or_([
-            Filter.select("select").equals("test1"),
-            Filter.number("number").less_than(10),
+if "select" in _ap and "number" in _ap:
+    result = client.databases.query(
+        query_id,
+        filter=Filter.and_([
+            Filter.text("title").is_not_empty(),
+            Filter.or_([
+                Filter.select("select").equals("test1"),
+                Filter.number("number").less_than(10),
+            ]),
         ]),
-    ]),
-    sorts=[
-        Sort.descending("number"),
-        Sort.by_timestamp("last_edited_time", "descending"),
-    ],
-)
-pprint.pprint(result)
+        sorts=[
+            Sort.descending("number"),
+            Sort.by_timestamp("last_edited_time", "descending"),
+        ],
+    )
+    pprint.pprint(result)
 
 # Fetch all results with automatic pagination
-all_pages = client.databases.query_all(database_id)
+all_pages = client.databases.query_all(query_id)
 log.debug("total pages: %d", len(all_pages))
 
+# Filters for people-type properties (created_by / last_edited_by)
+# Replace "user-id" with a real Notion user ID
+# result = client.databases.query(
+#     database_id,
+#     filter=Filter.created_by("Created By").contains("user-id"),
+# )
+
+# Formula, rollup, and verification filters (escape-hatch via Filter.raw
+# or the dedicated helpers below)
+# Filter.formula("Computed", "string").equals("ok")
+# Filter.formula("Score",    "number").greater_than(50)
+# Filter.rollup("Tasks",     "any",    "number").greater_than(0)
+# Filter.rollup("Tags",      "every",  "rich_text").contains("urgent")
+# Filter.verification("Verified").equals("verified")
+
 # ──────────────────────────────────────────────
-# 8. Archive and restore the page
+# 9. Archive and restore the page
 # ──────────────────────────────────────────────
 log.debug("=== 9. Archive & restore page ===")
 time.sleep(1)
@@ -311,36 +470,83 @@ client.pages.archive(page_id, archived=False)
 log.debug("page restored")
 
 # ──────────────────────────────────────────────
-# 9. Create a child database
+# 10. Create a child database (all PropertySchema types)
 # ──────────────────────────────────────────────
 log.debug("=== 10. Create child database ===")
 child_db = client.databases.create(
     parent={"type": "page_id", "page_id": page_id},
     title=[RichText.text("Child Database")],
+    is_inline=False,
     properties={
-        "Name":        PropertySchema.title(),
-        "Description": PropertySchema.rich_text(),
-        "Score":       PropertySchema.number(),
-        "Category":    PropertySchema.select([
-                           {"name": "Option A", "color": "green"},
-                           {"name": "Option B", "color": "red"},
-                       ]),
-        "Tags":        PropertySchema.multi_select(),
-        "Active":      PropertySchema.checkbox(),
-        "Website":     PropertySchema.url(),
-        "Email":       PropertySchema.email(),
-        "Phone":       PropertySchema.phone_number(),
-        "Due":         PropertySchema.date(),
+        # Core text
+        "Name":          PropertySchema.title(),
+        "Description":   PropertySchema.rich_text(),
+        "Website":       PropertySchema.url(),
+        "Email":         PropertySchema.email(),
+        "Phone":         PropertySchema.phone_number(),
+
+        # Numeric
+        "Score":         PropertySchema.number(),
+        "Price":         PropertySchema.number("dollar"),
+
+        # Selection
+        "Category":      PropertySchema.select([
+                             {"name": "Option A", "color": "green"},
+                             {"name": "Option B", "color": "red"},
+                         ]),
+        "Tags":          PropertySchema.multi_select(),
+        "Status":        PropertySchema.status(),
+
+        # Date / time (read-only columns included for reference)
+        "Due":           PropertySchema.date(),
+        "Created":       PropertySchema.created_time(),
+        "CreatedBy":     PropertySchema.created_by(),
+        "LastEdited":    PropertySchema.last_edited_time(),
+        "LastEditedBy":  PropertySchema.last_edited_by(),
+
+        # Other
+        "Active":        PropertySchema.checkbox(),
+        "Attachment":    PropertySchema.files(),
+        "People":        PropertySchema.people(),
+
+        # Special (2026-03-11 and newer)
+        "Action":        PropertySchema.button(),        # automation trigger
+        "Location":      PropertySchema.location(),      # geographic location
+        # "LastVisited": PropertySchema.last_visited_time(),  # read-only; add if supported
+
+        # Computed
+        "Formula":       PropertySchema.formula("prop('Score') * 2"),
+        "UniqueID":      PropertySchema.unique_id(prefix="ITEM"),
     },
     icon=Icon.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
     cover=Cover.external("https://github.githubassets.com/images/modules/logos_page/Octocat.png"),
 )
-log.debug("child database: %s", child_db["id"])
+child_db_id = child_db["id"]
+log.debug("child database: %s", child_db_id)
+
+# Lock the child database to prevent accidental edits
+client.databases.update(child_db_id, is_locked=True)
+log.debug("child database locked")
 
 # ──────────────────────────────────────────────
-# 10. Users
+# 11. Markdown API (Notion-Version: 2026-03-11)
 # ──────────────────────────────────────────────
-log.debug("=== 11. Users ===")
+log.debug("=== 11. Markdown API ===")
+md_response = client.pages.retrieve_markdown(page_id)
+log.debug("markdown length: %d chars", len(md_response.get("markdown", "")))
+log.debug("truncated: %s", md_response.get("truncated"))
+
+# Append Markdown content to the bottom of the page
+client.pages.append_markdown(
+    page_id,
+    markdown="## Appended via Markdown API\n\nThis section was added using the Markdown API.",
+)
+log.debug("markdown appended to page")
+
+# ──────────────────────────────────────────────
+# 12. Users
+# ──────────────────────────────────────────────
+log.debug("=== 12. Users ===")
 me = client.users.me()
 log.debug("bot user: %s", me.get("name"))
 

@@ -91,6 +91,7 @@ class PagesAPI:
         children: Optional[List[Dict]] = None,
         icon: Optional[Dict] = None,
         cover: Optional[Dict] = None,
+        timezone: Optional[str] = None,
     ) -> Dict:
         """Create a new page.
 
@@ -106,6 +107,11 @@ class PagesAPI:
                 Build with :class:`~notion_database.models.blocks.BlockContent`.
             icon: Icon object.
             cover: Cover object.
+            timezone: IANA timezone string used when resolving template
+                variables such as ``@now`` and ``@today``
+                (e.g. ``"Asia/Seoul"``).  Defaults to the authorizing
+                user's timezone for public integrations, or UTC for
+                internal integrations.
 
         Returns:
             Newly created Notion page object.
@@ -122,6 +128,8 @@ class PagesAPI:
             body["icon"] = icon
         if cover is not None:
             body["cover"] = cover
+        if timezone is not None:
+            body["timezone"] = timezone
         return self._http.post("/pages", body)
 
     # ------------------------------------------------------------------
@@ -158,8 +166,11 @@ class PagesAPI:
         body: Dict[str, Any] = {}
         if properties is not None:
             body["properties"] = properties
-        if archived is not None:
-            body["archived"] = archived
+        # Notion API 2026-03-11 replaced `archived` with `in_trash`.
+        # Fall back to `archived` only when `in_trash` is not set, for
+        # compatibility with older API versions.
+        if archived is not None and in_trash is None:
+            body["in_trash"] = archived
         if icon is not None:
             body["icon"] = icon
         if cover is not None:
@@ -169,15 +180,99 @@ class PagesAPI:
         return self._http.patch(f"/pages/{page_id}", body)
 
     def archive(self, page_id: str, *, archived: bool = True) -> Dict:
-        """Archive or restore a page.
+        """Archive (trash) or restore a page.
 
-        Convenience wrapper around :meth:`update`.
+        Convenience wrapper around :meth:`update`.  In Notion API 2026-03-11
+        this maps to ``in_trash``; older versions used ``archived``.
 
         Args:
             page_id: The page to archive/restore.
-            archived: ``True`` to archive, ``False`` to restore.
+            archived: ``True`` to move to trash, ``False`` to restore.
 
         Returns:
             Updated Notion page object.
         """
-        return self.update(page_id, archived=archived)
+        return self.update(page_id, in_trash=archived)
+
+    # ------------------------------------------------------------------
+    # GET /pages/{page_id}/markdown  (Notion-Version: 2026-03-11)
+    # ------------------------------------------------------------------
+
+    def retrieve_markdown(
+        self,
+        page_id: str,
+        *,
+        include_transcript: bool = False,
+    ) -> Dict:
+        """Retrieve a page's full content rendered as enhanced Markdown.
+
+        Returns a ``page_markdown`` object.  For very large pages
+        (20 000+ blocks) the ``truncated`` field will be ``true`` and
+        ``unknown_block_ids`` will list block IDs that were omitted.
+
+        Args:
+            page_id: The ID of the page to retrieve.
+            include_transcript: When ``True``, meeting-note transcript
+                content is included in full.  When ``False`` (default) a
+                placeholder with the meeting-note URL is used instead.
+
+        Returns:
+            ``{"type": "page_markdown", "page_id": "...", "markdown": "...",
+            "truncated": bool, "unknown_block_ids": [...]}``
+
+        Reference: https://developers.notion.com/reference/retrieve-page-markdown
+        """
+        params: Dict[str, Any] = {}
+        if include_transcript:
+            params["include_transcript"] = "true"
+        return self._http.get(f"/pages/{page_id}/markdown", params=params or None)
+
+    # ------------------------------------------------------------------
+    # PATCH /pages/{page_id}/markdown  (Notion-Version: 2026-03-11)
+    # ------------------------------------------------------------------
+
+    def update_markdown(
+        self,
+        page_id: str,
+        markdown: str,
+        *,
+        allow_deleting_content: bool = False,
+    ) -> Dict:
+        """Replace a page's entire content with the provided Markdown.
+
+        Args:
+            page_id: The ID of the page whose content to replace.
+            markdown: Enhanced Markdown string to write as the page body.
+            allow_deleting_content: Set to ``True`` to allow the operation to
+                delete child pages or databases that are not referenced in the
+                new Markdown content.
+
+        Returns:
+            Updated Notion page object.
+
+        Reference: https://developers.notion.com/reference/update-page-markdown
+        """
+        replace_content: Dict[str, Any] = {"new_str": markdown}
+        if allow_deleting_content:
+            replace_content["allow_deleting_content"] = True
+        return self._http.patch(
+            f"/pages/{page_id}/markdown",
+            {"type": "replace_content", "replace_content": replace_content},
+        )
+
+    def append_markdown(self, page_id: str, markdown: str) -> Dict:
+        """Append Markdown content to the end of a page.
+
+        Args:
+            page_id: The ID of the page to append to.
+            markdown: Enhanced Markdown string to append.
+
+        Returns:
+            Updated Notion page object.
+
+        Reference: https://developers.notion.com/reference/update-page-markdown
+        """
+        return self._http.patch(
+            f"/pages/{page_id}/markdown",
+            {"type": "insert_content", "insert_content": {"content": markdown}},
+        )
