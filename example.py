@@ -59,8 +59,15 @@ if not databases:
 # Search may return trashed / archived databases, or databases the integration
 # can discover but cannot access directly. Skip those and use the first live,
 # retrievable one.
+#
+# NOTE (Notion-Version 2026-03-11): search returns object:"data_source"
+# wrappers; search_databases() normalises result["id"] to the real database ID
+# but the wrapper still carries the property schema in result["properties"].
+# databases.retrieve() returns the database container which no longer contains
+# a "properties" key — properties now live on the data_source object.
 database_id = None
 db = None
+datasource = None  # data_source object from search (carries "properties")
 for candidate in databases:
     if candidate.get("in_trash") or candidate.get("archived"):
         log.debug("skipping trashed/archived database %s", candidate["id"])
@@ -69,6 +76,7 @@ for candidate in databases:
     try:
         db = client.databases.retrieve(cid)
         database_id = cid
+        datasource = candidate  # keep for property schema access
         log.debug("using database: %s", database_id)
         break
     except Exception as e:
@@ -118,7 +126,10 @@ REQUIRED_PROPERTIES = {
     "file":          PropertySchema.files(),
 }
 
-existing = set(db["properties"].keys())
+# In 2026-03-11 the database container has no "properties"; use the
+# data_source object (from search) which still carries the schema.
+ds_properties = (datasource or {}).get("properties") or db.get("properties") or {}
+existing = set(ds_properties.keys())
 missing = {k: v for k, v in REQUIRED_PROPERTIES.items() if k not in existing}
 
 if missing:
