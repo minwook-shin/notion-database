@@ -392,19 +392,6 @@ client.blocks.append_children(page_id, children=[
     BlockContent.paragraph("This block was prepended to the top."),
 ], position={"type": "start"})
 
-# Tab layout (Notion-Version: 2026-03-11) — append_children only,
-# not supported in pages.create children
-try:
-    client.blocks.append_children(page_id, children=[
-        BlockContent.tab_group([
-            BlockContent.tab("Overview", [BlockContent.paragraph("Overview content")]),
-            BlockContent.tab("Details",  [BlockContent.paragraph("Details content")]),
-        ]),
-    ])
-    log.debug("tab_group appended successfully")
-except Exception as e:
-    log.warning("tab_group not supported via append_children: %s", e)
-
 # ──────────────────────────────────────────────
 # 8. Query the database (filters + sorts)
 # ──────────────────────────────────────────────
