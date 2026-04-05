@@ -166,8 +166,11 @@ class PagesAPI:
         body: Dict[str, Any] = {}
         if properties is not None:
             body["properties"] = properties
-        if archived is not None:
-            body["archived"] = archived
+        # Notion API 2026-03-11 replaced `archived` with `in_trash`.
+        # Fall back to `archived` only when `in_trash` is not set, for
+        # compatibility with older API versions.
+        if archived is not None and in_trash is None:
+            body["in_trash"] = archived
         if icon is not None:
             body["icon"] = icon
         if cover is not None:
@@ -177,18 +180,19 @@ class PagesAPI:
         return self._http.patch(f"/pages/{page_id}", body)
 
     def archive(self, page_id: str, *, archived: bool = True) -> Dict:
-        """Archive or restore a page.
+        """Archive (trash) or restore a page.
 
-        Convenience wrapper around :meth:`update`.
+        Convenience wrapper around :meth:`update`.  In Notion API 2026-03-11
+        this maps to ``in_trash``; older versions used ``archived``.
 
         Args:
             page_id: The page to archive/restore.
-            archived: ``True`` to archive, ``False`` to restore.
+            archived: ``True`` to move to trash, ``False`` to restore.
 
         Returns:
             Updated Notion page object.
         """
-        return self.update(page_id, archived=archived)
+        return self.update(page_id, in_trash=archived)
 
     # ------------------------------------------------------------------
     # GET /pages/{page_id}/markdown  (Notion-Version: 2026-03-11)
