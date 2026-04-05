@@ -56,6 +56,8 @@ if databases:
               databases[0].get("object"), databases[0].get("type"),
               databases[0].get("id"), databases[0].get("in_trash"),
               databases[0].get("archived"))
+    log.debug("first result full dump:")
+    pprint.pprint(databases[0])
 
 if not databases:
     log.warning("No accessible databases found. Make sure the integration is shared with a page.")
