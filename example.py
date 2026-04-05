@@ -56,14 +56,32 @@ if not databases:
     log.warning("No accessible databases found. Make sure the integration is shared with a page.")
     raise SystemExit(0)
 
-database_id = databases[0]["id"]
-log.debug("using database: %s", database_id)
+# Search may return databases that the integration can discover but cannot
+# access directly (e.g. not explicitly shared). Find the first retrievable one.
+database_id = None
+db = None
+for candidate in databases:
+    cid = candidate["id"]
+    try:
+        db = client.databases.retrieve(cid)
+        database_id = cid
+        log.debug("using database: %s", database_id)
+        break
+    except Exception as e:
+        log.debug("skipping database %s (%s)", cid, e)
+
+if database_id is None:
+    log.warning(
+        "No accessible database found among %d result(s). "
+        "Share at least one database directly with your integration.",
+        len(databases),
+    )
+    raise SystemExit(0)
 
 # ──────────────────────────────────────────────
 # 2. Retrieve and update a database
 # ──────────────────────────────────────────────
 log.debug("=== 2. Retrieve & update database ===")
-db = client.databases.retrieve(database_id)
 pprint.pprint(db)
 
 # Update title, icon, cover, and layout options
