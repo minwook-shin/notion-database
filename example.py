@@ -50,7 +50,7 @@ log.debug("=== 1. Find parent page ===")
 # Strategy 1: search with the "page" filter
 parent_page_id = None
 page_result = client.search.search_pages(
-    sort={"direction": "Ascending", "timestamp": "last_edited_time"},
+    sort={"direction": "ascending", "timestamp": "last_edited_time"},
 )
 for p in page_result["results"]:
     if not p.get("in_trash") and not p.get("archived"):
