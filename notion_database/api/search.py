@@ -30,7 +30,7 @@ class SearchAPI:
             query: Text to search for.  Pass an empty string to list all
                 accessible objects.
             filter: Object type filter.  ``{"value": "page", "property": "object"}``
-                or ``{"value": "database", "property": "object"}``.
+                or ``{"value": "data_source", "property": "object"}``.
             sort: Sort criteria dict, e.g.
                 ``{"direction": "ascending", "timestamp": "last_edited_time"}``.
             start_cursor: Cursor for pagination.
@@ -78,7 +78,7 @@ class SearchAPI:
         """
         return self.search(
             query,
-            filter={"value": "database", "property": "object"},
+            filter={"value": "data_source", "property": "object"},
             sort=sort,
             start_cursor=start_cursor,
             page_size=page_size,
