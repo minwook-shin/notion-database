@@ -1,5 +1,5 @@
 python-dotenv==1.2.2
-tox==4.56.4
+tox==4.57.0
 pylint==4.0.6
 pytest==9.1.1
 twine
